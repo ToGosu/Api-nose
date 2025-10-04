@@ -13,4 +13,7 @@ public final class ObjectHelper {
 		return isNull(object) ? defaultValue : object;
 	}
 	
+	public static String getDefaultWithTrim(final String value) {
+		return getDefaultWithTrim(value).trim();
+	}
 }
