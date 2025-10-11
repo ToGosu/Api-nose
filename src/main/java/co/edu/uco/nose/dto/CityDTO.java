@@ -8,6 +8,7 @@ import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
 public class CityDTO extends DTO{
 	
 	private String name;
+    private String lastName;
 	
 	
 	
