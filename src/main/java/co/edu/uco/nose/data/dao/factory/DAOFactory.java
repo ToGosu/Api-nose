@@ -5,107 +5,75 @@ import java.sql.Connection;
 import co.edu.uco.nose.crosscuting.exception.NoseException;
 import co.edu.uco.nose.crosscuting.helper.SqlConnectionHelper;
 import co.edu.uco.nose.data.dao.entity.*;
-import co.edu.uco.nose.data.dao.factory.sqlserver.PostgresqlDAOFactory;
-
+import co.edu.uco.nose.data.dao.factory.postgresql.PostgresqlDAOFactory;
 
 public abstract class DAOFactory {
-	
-	protected Connection connection;
-	
-	protected static FactoryEnum factory = FactoryEnum.POSTGRESQL;
-	
-	public static DAOFactory getFactory() {
-		if (FactoryEnum.POSTGRESQL.equals(factory)) {
-			return new PostgresqlDAOFactory();
-		}else {
-			var userMessage= "Factoria no iniciada";
-			var technicalMessage= "Factoria no valida";
-			throw NoseException.create(userMessage, technicalMessage);
-		}
-		
-		}
-	
-	
-	public abstract CityDAO getCityDAO();
-	
-	public abstract CountryDAO getCountryDAO();
-	
-	public abstract IdTypeDAO getIdTypeDAO();
-	
-	public abstract StateDAO getStateDAO();
-	
-	public abstract UserDAO getUserDAO();
-	
-	protected abstract void openConnection();
-	
-	protected final void initTransaction(){
-		SqlConnectionHelper.ensureTransactionIsNotStarted(connection);
-		try {
-			connection.setAutoCommit(false);
-		} catch (final Exception exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
 
-		} catch (final Throwable exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-	}
-	
-	protected final void commitTransaction(){
-		SqlConnectionHelper.ensureTransactionIsNotStarted(connection);
-		try {
-			connection.commit();
-		} catch (final Exception exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    protected Connection connection;
+    protected static final FactoryEnum FACTORY = FactoryEnum.POSTGRESQL;
 
-		} catch (final Throwable exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    public static DAOFactory getFactory() {
+        if (FactoryEnum.POSTGRESQL.equals(FACTORY)) {
+            return new PostgresqlDAOFactory();
+        } else {
+            throw NoseException.create(
+                    "No se pudo iniciar la fábrica de DAOs.",
+                    "Tipo de fábrica no soportado: " + FACTORY);
+        }
+    }
 
-		}
-	}
-	
-	protected final void rollbackTransaction(){
-		SqlConnectionHelper.ensureTransactionIsNotStarted(connection);
-		try {
-			connection.rollback();
-		} catch (final Exception exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    public abstract CityDAO getCityDAO();
 
-		} catch (final Throwable exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    public abstract CountryDAO getCountryDAO();
 
-		}
-	}
-	
-	protected final void closeConnection(){
-		SqlConnectionHelper.ensureTransactionIsNotStarted(connection);
-		try {
-			connection.close();
-		} catch (final Exception exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    public abstract IdTypeDAO getIdTypeDAO();
 
-		} catch (final Throwable exception) {
-			var userMessage= "";
-			var technicalMessage= "";
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    public abstract StateDAO getStateDAO();
 
-		}
-	}
-	
-	
-	
-	
+    public abstract UserDAO getUserDAO();
+
+    protected abstract void openConnection();
+
+    protected void initTransaction() {
+        SqlConnectionHelper.ensureTransactionIsNotStarted(connection);
+        try {
+            connection.setAutoCommit(false);
+        } catch (Exception exception) {
+            throw NoseException.create(exception,
+                    "No se pudo iniciar la transacción.",
+                    "Error al desactivar el autocommit de la conexión.");
+        }
+    }
+
+    protected void commitTransaction() {
+        SqlConnectionHelper.ensureTransactionIsStarted(connection);
+        try {
+            connection.commit();
+        } catch (Exception exception) {
+            throw NoseException.create(exception,
+                    "No se pudo confirmar la transacción.",
+                    "Error al hacer commit de la conexión.");
+        }
+    }
+
+    protected void rollbackTransaction() {
+        SqlConnectionHelper.ensureTransactionIsStarted(connection);
+        try {
+            connection.rollback();
+        } catch (Exception exception) {
+            throw NoseException.create(exception,
+                    "No se pudo revertir la transacción.",
+                    "Error al hacer rollback de la conexión.");
+        }
+    }
+
+    protected void closeConnection() {
+        try {
+            connection.close();
+        } catch (Exception exception) {
+            throw NoseException.create(exception,
+                    "No se pudo cerrar la conexión.",
+                    "Error al intentar cerrar la conexión a la base de datos.");
+        }
+    }
 }

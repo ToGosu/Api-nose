@@ -9,21 +9,25 @@ public class CityEntity extends Entity{
 	
 	
 	private String name;
+	private StateEntity state;
 	
 	public CityEntity() {
 		super(UUIDHelper.getUUIDHelper().getDefault());
 		setName(TextHelper.getDefault());
+		setState(new StateEntity());
 	}
 	
 
 	public CityEntity(final UUID id) {
 		super(id);
 		setName(TextHelper.getDefault());
+		setState(new StateEntity());
 	}
 	
-	public CityEntity(final UUID id,final String name) {
+	public CityEntity(final UUID id,final String name, final StateEntity state) {
 		super(id);
-		this.name = name;
+		setName(name);
+		setState(new StateEntity());
 	}
 
 	public String getName() {
@@ -33,5 +37,10 @@ public class CityEntity extends Entity{
 	public void setName(final String name) {
 		this.name = TextHelper.getDefaultWithTrim(name);
 	}
-
+	public StateEntity getState() {
+		return state;
+	}
+	public void setState(final StateEntity state) {
+		this.state = state;
+	}
 }

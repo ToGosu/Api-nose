@@ -55,6 +55,26 @@ public class UserEntity extends Entity {
         setEmailConfirmedIsDefaultValue(true);
         setMobileNumberConfirmedIsDefaultValue(true);
     }
+    
+    public UserEntity(final UUID id, final String firstName, final String secondName, final String firstLastName,
+			final String secondLastName, final String identification, final CityEntity residenceCity,
+			final IdTypeEntity idType, final String email, final String phoneNumber, final boolean emailConfirmed,
+			final boolean mobileNumberConfirmed) {
+		super(id);
+		setFirstName(firstName);
+		setSecondName(secondName);
+		setFirstLastName(firstLastName);
+		setSecondLastName(secondLastName);
+		setIdentification(identification);
+		setResidenceCity(residenceCity);
+		setIdType(idType);
+		setEmail(email);
+		setPhoneNumber(phoneNumber);
+		setEmailConfirmed(emailConfirmed);
+		setMobileNumberConfirmed(mobileNumberConfirmed);
+		setEmailConfirmedIsDefaultValue(false);
+		setMobileNumberConfirmedIsDefaultValue(false);
+	}
 
     public static final UserEntity build() {
         return new UserEntity();
