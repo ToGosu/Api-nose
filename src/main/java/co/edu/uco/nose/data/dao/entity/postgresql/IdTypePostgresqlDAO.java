@@ -9,132 +9,171 @@ import java.util.List;
 import java.util.UUID;
 
 import co.edu.uco.nose.crosscuting.exception.NoseException;
-import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
+import co.edu.uco.nose.crosscuting.helper.SqlConnectionHelper;
+import co.edu.uco.nose.crosscuting.messagescatalog.MessagesEnum;
 import co.edu.uco.nose.data.dao.entity.IdTypeDAO;
 import co.edu.uco.nose.data.dao.entity.SqlConnection;
 import co.edu.uco.nose.entity.IdTypeEntity;
 
 public final class IdTypePostgresqlDAO extends SqlConnection implements IdTypeDAO {
 
-    public IdTypePostgresqlDAO(Connection connection) {
+    public IdTypePostgresqlDAO(final Connection connection) {
         super(connection);
     }
 
     @Override
-    public List findAll() {
-        final var sql = new StringBuilder();
-        sql.append("SELECT id, nombre, descripcion ");
-        sql.append("FROM TipoIdentificacion");
+    public List<IdTypeEntity> findAll() {
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
-        final List<IdTypeEntity> idTypes = new ArrayList<>();
+        final String sql = "SELECT id, name, abbreviation FROM idtype";
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString());
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql)) {
+            final ResultSet resultSet = preparedStatement.executeQuery();
+
+            final List<IdTypeEntity> idTypes = new ArrayList<>();
 
             while (resultSet.next()) {
-                var idType = new IdTypeEntity();
-                idType.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-                idType.setName(resultSet.getString("nombre"));
-                idType.setDescription(resultSet.getString("descripcion"));
-                idTypes.add(idType);
+                final IdTypeEntity entity = new IdTypeEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("name"));
+                idTypes.add(entity);
             }
 
-        } catch (final SQLException exception) {
-            var userMessage = "Error al intentar consultar los tipos de identificación.";
-            var technicalMessage = "Error al ejecutar la sentencia SQL en findAll() de IdTypePostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Exception exception) {
-            var userMessage = "Se presentó un error inesperado al consultar los tipos de identificación.";
-            var technicalMessage = "Excepción inesperada en findAll() de IdTypePostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        }
+            return idTypes;
 
-        return idTypes;
+        } catch (final SQLException exception) {
+            throw NoseException.create(
+                    exception,
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_ID_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_SQL_ID_TYPE.getContent()
+            );
+
+        } catch (final Exception exception) {
+            throw NoseException.create(
+                    exception,
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_ID_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_UNEXPECTED_ID_TYPE.getContent()
+            );
+
+        } catch (final Throwable exception) {
+            throw NoseException.create(
+                    exception,
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_ID_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_CRITICAL_ID_TYPE.getContent()
+            );
+        }
     }
 
     @Override
-    public List<IdTypeEntity> findByFilter(final IdTypeEntity filterEntity) {
-        final var sql = new StringBuilder();
-        sql.append("SELECT id, nombre, descripcion ");
-        sql.append("FROM TipoIdentificacion ");
-        sql.append("WHERE 1=1 ");
+    public List<IdTypeEntity> findByFilter(IdTypeEntity filterEntity) {
+        if (filterEntity == null) {
+            return findAll();
+        }
 
-        final List<Object> parameters = new ArrayList<>();
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+
+        final var sql = new StringBuilder();
+        sql.append("SELECT id, name, abbreviation FROM idtype");
+
+        final List<String> whereClauses = new ArrayList<>();
 
         if (filterEntity.getId() != null) {
-            sql.append("AND id = ? ");
-            parameters.add(filterEntity.getId());
+            whereClauses.add("id = ?");
         }
-        if (filterEntity.getName() != null && !filterEntity.getName().isBlank()) {
-            sql.append("AND LOWER(nombre) LIKE LOWER(?) ");
-            parameters.add("%" + filterEntity.getName() + "%");
+        if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+            whereClauses.add("name ILIKE ?");
         }
-        if (filterEntity.getDescription() != null && !filterEntity.getDescription().isBlank()) {
-            sql.append("AND LOWER(descripcion) LIKE LOWER(?) ");
-            parameters.add("%" + filterEntity.getDescription() + "%");
+
+
+        if (!whereClauses.isEmpty()) {
+            sql.append(" WHERE ");
+            sql.append(String.join(" AND ", whereClauses));
         }
 
         final List<IdTypeEntity> idTypes = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
-            for (int i = 0; i < parameters.size(); i++) {
-                preparedStatement.setObject(i + 1, parameters.get(i));
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+
+            int index = 1;
+            if (filterEntity.getId() != null) {
+                preparedStatement.setObject(index++, filterEntity.getId());
+            }
+            if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getName().trim() + "%");
             }
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            try (final ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    var idType = new IdTypeEntity();
-                    idType.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-                    idType.setName(resultSet.getString("nombre"));
-                    idType.setDescription(resultSet.getString("descripcion"));
-                    idTypes.add(idType);
+                    final IdTypeEntity entity = new IdTypeEntity(
+                            (UUID) resultSet.getObject("id"),
+                            resultSet.getString("name"));
+                    idTypes.add(entity);
                 }
+                return idTypes;
             }
 
         } catch (final SQLException exception) {
-            var userMessage = "Error al intentar consultar tipos de identificación con filtro.";
-            var technicalMessage = "Error al ejecutar la sentencia SQL en findByFilter() de IdTypePostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Exception exception) {
-            var userMessage = "Se presentó un error inesperado al consultar tipos de identificación con filtro.";
-            var technicalMessage = "Excepción inesperada en findByFilter() de IdTypePostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        }
+            throw new NoseException(
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_FILTER_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_SQL_ID_TYPE.getContent(),
+                    exception
+            );
 
-        return idTypes;
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_FILTER_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_UNEXPECTED_ID_TYPE.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_FILTER_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_CRITICAL_ID_TYPE.getContent(),
+                    (SQLException) exception
+            );
+        }
     }
+
 
     @Override
     public IdTypeEntity findById(final UUID id) {
-        final var sql = new StringBuilder();
-        sql.append("SELECT id, nombre, descripcion ");
-        sql.append("FROM TipoIdentificacion ");
-        sql.append("WHERE id = ?");
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
-        IdTypeEntity idType = null;
+        final String sql = "SELECT id, name, abbreviation FROM idtype WHERE id = ?";
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql)) {
             preparedStatement.setObject(1, id);
+            final ResultSet resultSet = preparedStatement.executeQuery();
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    idType = new IdTypeEntity();
-                    idType.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-                    idType.setName(resultSet.getString("nombre"));
-                    idType.setDescription(resultSet.getString("descripcion"));
-                }
+            if (resultSet.next()) {
+                return new IdTypeEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("name"));
             }
 
-        } catch (final SQLException exception) {
-            var userMessage = "Error al intentar consultar el tipo de identificación.";
-            var technicalMessage = "Error al ejecutar la sentencia SQL en findById() de IdTypePostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Exception exception) {
-            var userMessage = "Se presentó un error inesperado al consultar el tipo de identificación.";
-            var technicalMessage = "Excepción inesperada en findById() de IdTypePostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        }
+            return null;
 
-        return idType;
+        } catch (final SQLException exception) {
+            throw new NoseException(
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_FILTER_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_SQL_ID_TYPE.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_FILTER_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_UNEXPECTED_ID_TYPE.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.ID_TYPE_ERROR_FIND_BY_FILTER_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_CRITICAL_ID_TYPE.getContent(),
+                    (SQLException) exception
+            );
+        }
     }
 }

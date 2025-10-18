@@ -1,377 +1,309 @@
 package co.edu.uco.nose.data.dao.entity.postgresql;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import co.edu.uco.nose.crosscuting.exception.NoseException;
 import co.edu.uco.nose.crosscuting.helper.SqlConnectionHelper;
-import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
+import co.edu.uco.nose.crosscuting.messagescatalog.MessagesEnum;
+import co.edu.uco.nose.data.dao.entity.IdTypeDAO;
 import co.edu.uco.nose.data.dao.entity.SqlConnection;
 import co.edu.uco.nose.data.dao.entity.UserDAO;
 import co.edu.uco.nose.entity.CityEntity;
-import co.edu.uco.nose.entity.CountryEntity;
 import co.edu.uco.nose.entity.IdTypeEntity;
-import co.edu.uco.nose.entity.StateEntity;
 import co.edu.uco.nose.entity.UserEntity;
 
 public final class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 
-	
-	
-	@Override
-	public void create(final UserEntity entity) {
-		
-		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
-		
-		final var sql=new StringBuilder();
-		sql.append("INSERT INTO User(id, idType, phoneNumber, firstName, secondName, firstLastName, secondLastName, residenceCity, email, phoneNumber, emailConfirmed, mobileNumberConfirmed) ");
-		sql.append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-		
-		try (var preparedStatement=this.getConnection().prepareStatement(sql.toString())){
-			preparedStatement.setObject(1, entity.getId());
-			preparedStatement.setObject(2, entity.getIdType().getId());
-			preparedStatement.setString(3, entity.getPhoneNumber());
-			preparedStatement.setString(4, entity.getFirstName());
-			preparedStatement.setString(5, entity.getSecondName());
-			preparedStatement.setString(6, entity.getFirstLastName());
-			preparedStatement.setString(7, entity.getSecondLastName());
-			preparedStatement.setObject(8, entity.getResidenceCity().getId());
-			preparedStatement.setString(9, entity.getEmail());
-			preparedStatement.setString(10, entity.getPhoneNumber());
-			preparedStatement.setBoolean(11, entity.isEmailConfirmed());
-			preparedStatement.setBoolean(12, entity.isMobileNumberConfirmed());
-			preparedStatement.executeUpdate();
-			
-		} catch (final SQLException exception) {
-			var userMessage= "No se pudo crear el usuario";
-			var technicalMessage= "Se ha presentado un error al intentar crear el usuario en la base de datos. Por favor verifique la traza completa del error";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		} catch (final Exception exception) {
-			var userMessage= "No se pudo crear el usuario";
-			var technicalMessage= "Se ha presentado un error inesperado al intentar crear el usuario en la base de datos. Por favor verifique la traza completa del error";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		} catch (final Throwable exception) {
-			var userMessage= "No se pudo crear el usuario";
-			var technicalMessage= "Se ha presentado un error critico al intentar crear el usuario en la base de datos. Por favor verifique la traza completa del error";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-	}
-
-	public UserPostgresqlDAO(Connection connection) {
-		super(connection);
-		// TODO Auto-generated constructor stub
-	}
 
 
-	@Override
-	public List<UserEntity> findAll() {
+    @Override
+    public void create(final UserEntity entity) {
 
-	    final var users = new ArrayList<UserEntity>();
-	    final var sql = new StringBuilder();
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
-	    sql.append("SELECT ");
-	    sql.append("  	u.id, ");
-	    sql.append("  	ti.id AS idTipoIdentificacion, ");
-	    sql.append("  	ti.nombre AS nombreTipoIdentificacion, ");
-	    sql.append("  	u.numeroIdentificacion, ");
-	    sql.append("  	u.primerNombre, ");
-	    sql.append("  	u.segundoNombre, ");
-	    sql.append("  	u.primerApellido, ");
-	    sql.append("  	u.segundoApellido, ");
-	    sql.append("  	c.id AS idCiudadResidencia, ");
-	    sql.append("  	c.nombre AS nombreCiudadResidencia, ");
-	    sql.append("  	d.id AS idDepartamentoCiudadResidencia, ");
-	    sql.append("  	d.nombre AS nombreDepartamentoCiudadResidencia, ");
-	    sql.append("  	p.id AS idPaisDepartamentoCiudadResidencia, ");
-	    sql.append("  	p.nombre AS nombrePaisDepartamentoCiudadResidencia, ");
-	    sql.append("  	u.correoElectronico, ");
-	    sql.append("  	u.numeroTelefonoMovil, ");
-	    sql.append("  	u.correoElectronicoConfirmado, ");
-	    sql.append("  	u.numeroTelefonoMovilConfirmado ");
-	    sql.append("FROM Usuario AS u ");
-	    sql.append("INNER JOIN TipoIdentificacion AS ti ON u.tipoIdentificacion = ti.id ");
-	    sql.append("INNER JOIN Ciudad AS c ON u.ciudadResidencia = c.id ");
-	    sql.append("INNER JOIN Departamento AS d ON c.departamento = d.id ");
-	    sql.append("INNER JOIN Pais AS p ON d.pais = p.id;");
+        final var sql=new StringBuilder();
+        sql.append("INSERT INTO User(id, idType, phoneNumber, firstName, secondName, firstLastName, secondLastName, residenceCity, email, phoneNumber, emailConfirmed, mobileNumberConfirmed) ");
+        sql.append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-	    try (var preparedStatement = this.getConnection().prepareStatement(sql.toString());
-	         var resultSet = preparedStatement.executeQuery()) {
+        try (var preparedStatement=this.getConnection().prepareStatement(sql.toString())){
+            preparedStatement.setObject(1, entity.getId());
+            preparedStatement.setObject(2, entity.getIdType().getId());
+            preparedStatement.setString(3, entity.getPhoneNumber());
+            preparedStatement.setString(4, entity.getFirstName());
+            preparedStatement.setString(5, entity.getSecondName());
+            preparedStatement.setString(6, entity.getFirstLastName());
+            preparedStatement.setString(7, entity.getSecondLastName());
+            preparedStatement.setObject(8, entity.getResidenceCity().getId());
+            preparedStatement.setString(9, entity.getEmail());
+            preparedStatement.setBoolean(10, entity.isEmailConfirmed());
+            preparedStatement.setBoolean(11, entity.isMobileNumberConfirmed());
+            preparedStatement.executeUpdate();
 
-	        while (resultSet.next()) {
-
-	            var idType = new IdTypeEntity();
-	            idType.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idTipoIdentificacion")));
-	            idType.setName(resultSet.getString("nombreTipoIdentificacion"));
-	            
-
-	            var country = new CountryEntity();
-	            country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idPaisDepartamentoCiudadResidencia")));
-	            country.setName(resultSet.getString("nombrePaisDepartamentoCiudadResidencia"));
-
-	            var state = new StateEntity();
-	            state.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idDepartamentoCiudadResidencia")));
-	            state.setName(resultSet.getString("nombreDepartamentoCiudadResidencia"));
-
-	            var city = new CityEntity();
-	            city.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idCiudadResidencia")));
-	            city.setName(resultSet.getString("nombreCiudadResidencia"));
-
-	            var user = new UserEntity();
-	            user.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-	            user.setIdType(idType);
-	            user.setFirstName(resultSet.getString("primerNombre"));
-	            user.setSecondName(resultSet.getString("segundoNombre"));
-	            user.setFirstLastName(resultSet.getString("primerApellido"));
-	            user.setSecondLastName(resultSet.getString("segundoApellido"));
-	            user.setResidenceCity(city);
-	            user.setEmail(resultSet.getString("correoElectronico"));
-	            user.setPhoneNumber(resultSet.getString("numeroTelefonoMovil"));
-	            user.setEmailConfirmed(resultSet.getBoolean("correoElectronicoConfirmado"));
-	            user.setMobileNumberConfirmed(resultSet.getBoolean("numeroTelefonoMovilConfirmado"));
-
-	            users.add(user);
-	        }
-
-	    } catch (final SQLException exception) {
-	        var userMessage = "Se ha presentado un error al consultar los usuarios.";
-	        var technicalMessage = "Error SQL al ejecutar la consulta en la base de datos.";
-	        throw NoseException.create(exception, userMessage, technicalMessage);
-	    } catch (final Exception exception) {
-	        var userMessage = "No se pudo consultar la lista de usuarios.";
-	        var technicalMessage = "Error inesperado al intentar listar los usuarios.";
-	        throw NoseException.create(exception, userMessage, technicalMessage);
-	    }
-
-	    return users;
-	}
-
-
-	@Override
-	public List<UserEntity> findByFilter(UserEntity filterEntity) {
-	    
-	    final var users = new ArrayList<UserEntity>();
-	    final var sql = new StringBuilder();
-
-	    sql.append("SELECT ");
-	    sql.append("  	u.id, ");
-	    sql.append("  	ti.id AS idTipoIdentificacion, ");
-	    sql.append("  	ti.nombre AS nombreTipoIdentificacion, ");
-	    sql.append("  	u.numeroIdentificacion, ");
-	    sql.append("  	u.primerNombre, ");
-	    sql.append("  	u.segundoNombre, ");
-	    sql.append("  	u.primerApellido, ");
-	    sql.append("  	u.segundoApellido, ");
-	    sql.append("  	c.id AS idCiudadResidencia, ");
-	    sql.append("  	c.nombre AS nombreCiudadResidencia, ");
-	    sql.append("  	d.id AS idDepartamentoCiudadResidencia, ");
-	    sql.append("  	d.nombre AS nombreDepartamentoCiudadResidencia, ");
-	    sql.append("  	p.id AS idPaisDepartamentoCiudadResidencia, ");
-	    sql.append("  	p.nombre AS nombrePaisDepartamentoCiudadResidencia, ");
-	    sql.append("  	u.correoElectronico, ");
-	    sql.append("  	u.numeroTelefonoMovil, ");
-	    sql.append("  	u.correoElectronicoConfirmado, ");
-	    sql.append("  	u.numeroTelefonoMovilConfirmado ");
-	    sql.append("FROM Usuario AS u ");
-	    sql.append("INNER JOIN TipoIdentificacion AS ti ON u.tipoIdentificacion = ti.id ");
-	    sql.append("INNER JOIN Ciudad AS c ON u.ciudadResidencia = c.id ");
-	    sql.append("INNER JOIN Departamento AS d ON c.departamento = d.id ");
-	    sql.append("INNER JOIN Pais AS p ON d.pais = p.id ");
-	    sql.append("WHERE 1=1 ");
-
-	    final var parameters = new ArrayList<Object>();
-
-	    if (filterEntity != null) {
-	        if (filterEntity.getId() != null) {
-	            sql.append(" AND u.id = ? ");
-	            parameters.add(filterEntity.getId());
-	            
-	        }
-	        if (filterEntity.getIdType() != null && filterEntity.getIdType().getId() != null) {
-	            sql.append(" AND ti.id = ? ");
-	            parameters.add(filterEntity.getIdType().getId());
-	            
-	        }
-	        if (filterEntity.getFirstName() != null && !filterEntity.getFirstName().isBlank()) {
-	            sql.append(" AND LOWER(u.primerNombre) LIKE LOWER(?) ");
-	            parameters.add("%" + filterEntity.getFirstName() + "%");
-	        }
-	        if (filterEntity.getFirstLastName() != null && !filterEntity.getFirstLastName().isBlank()) {
-	            sql.append(" AND LOWER(u.primerApellido) LIKE LOWER(?) ");
-	            parameters.add("%" + filterEntity.getFirstLastName() + "%");
-	        }
-	        if (filterEntity.getEmail() != null && !filterEntity.getEmail().isBlank()) {
-	            sql.append(" AND LOWER(u.correoElectronico) LIKE LOWER(?) ");
-	            parameters.add("%" + filterEntity.getEmail() + "%");
-	        }
-	    }
-
-	    try (var preparedStatement = this.getConnection().prepareStatement(sql.toString())) {
-
-	        for (int i = 0; i < parameters.size(); i++) {
-	            preparedStatement.setObject(i + 1, parameters.get(i));
-	        }
-
-	        try (var resultSet = preparedStatement.executeQuery()) {
-	            while (resultSet.next()) {
-	                var idType = new IdTypeEntity();
-	                idType.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idTipoIdentificacion")));
-	                idType.setName(resultSet.getString("nombreTipoIdentificacion"));
-
-	                var country = new CountryEntity();
-	                country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idPaisDepartamentoCiudadResidencia")));
-	                country.setName(resultSet.getString("nombrePaisDepartamentoCiudadResidencia"));
-
-	                var state = new StateEntity();
-	                state.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idDepartamentoCiudadResidencia")));
-	                state.setName(resultSet.getString("nombreDepartamentoCiudadResidencia"));
-
-	                var city = new CityEntity();
-	                city.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idCiudadResidencia")));
-	                city.setName(resultSet.getString("nombreCiudadResidencia"));
-
-	                var user = new UserEntity();
-	                user.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-	                user.setIdType(idType);
-	                user.setFirstName(resultSet.getString("primerNombre"));
-	                user.setSecondName(resultSet.getString("segundoNombre"));
-	                user.setFirstLastName(resultSet.getString("primerApellido"));
-	                user.setSecondLastName(resultSet.getString("segundoApellido"));
-	                user.setResidenceCity(city);
-	                user.setEmail(resultSet.getString("correoElectronico"));
-	                user.setPhoneNumber(resultSet.getString("numeroTelefonoMovil"));
-	                user.setEmailConfirmed(resultSet.getBoolean("correoElectronicoConfirmado"));
-	                user.setMobileNumberConfirmed(resultSet.getBoolean("numeroTelefonoMovilConfirmado"));
-
-	                users.add(user);
-	            }
-	        }
-
-	    } catch (final SQLException exception) {
-	        var userMessage = "Error al consultar los usuarios con filtro.";
-	        var technicalMessage = "Error SQL en la consulta con parámetros dinámicos.";
-	        throw NoseException.create(exception, userMessage, technicalMessage);
-	    } catch (final Exception exception) {
-	        var userMessage = "No se pudo ejecutar el filtro de usuarios.";
-	        var technicalMessage = "Error inesperado al procesar los parámetros de búsqueda.";
-	        throw NoseException.create(exception, userMessage, technicalMessage);
-	    }
-
-	    return users;
-	}
-
-
-	@Override
-	public UserEntity findById(final UUID id) {
-		
-		var user = new UserEntity();
-		
-		final var sql = new StringBuilder();
-		sql.append("SELECT ");
-		sql.append("  	u.id, ");
-		sql.append("  	ti.id AS idTipoIdentificacion, ");
-		sql.append("  	ti.nombre AS nombreTipoIdentificacion, ");
-		sql.append("  	u.numeroIdentificacion, ");
-		sql.append("  	u.primerNombre, ");
-		sql.append("  	u.segundoNombre, ");
-		sql.append("  	u.primerApellido, ");
-		sql.append("  	u.segundoApellido, ");
-		sql.append("  	c.id AS idCiudadResidencia, ");
-		sql.append("  	c.nombre AS nombreCiudadResidencia, ");
-		sql.append("  	d.id AS idDepartamentoCiudadResidencia, ");
-		sql.append("  	d.nombre AS nombreDepartamentoCiudadResidencia, ");
-		sql.append("  	p.id AS idPaisDepartamentoCiudadResidencia, ");
-		sql.append("  	p.nombre AS nombrePaisDepartamentoCiudadResidencia, ");
-		sql.append("  	u.correoElectronico, ");
-		sql.append("  	u.numeroTelefonoMovil, ");
-		sql.append("  	u.correoElectronicoConfirmado, ");
-		sql.append("  	u.numeroTelefonoMovilConfirmado ");
-		sql.append("FROM Usuario AS u ");
-		sql.append("INNER JOIN TipoIdentificacion AS ti ");
-		sql.append("ON 	u.tipoIdentificacion = ti.id ");
-		sql.append("INNER JOIN Ciudad AS c ");
-		sql.append("ON 	u.ciudadResidencia = c.id ");
-		sql.append("INNER JOIN Departamento AS d ");
-		sql.append("ON 	c.departamento = d.id ");
-		sql.append("INNER JOIN Pais AS p ");
-		sql.append("ON 	d.pais = p.id; ");
-		sql.append("WHERE u.id = ?; ");
-		
-        try (var preparedStatement = this.getConnection().prepareStatement(sql.toString())) {
-        	
-        	preparedStatement.setObject(1,id);
-        	
-        	try (var resultSet= preparedStatement.executeQuery()){
-        		if (resultSet.next()) {
-        			var idType = new IdTypeEntity();
-        			idType.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idTipoIdentificacion")));
-        			idType.setName(resultSet.getString("nombreTipoIdentificacion"));
-        			
-        			
-        			
-        			var country = new CountryEntity();
-        			country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idPaisDepartamentoCiudadResidencia")));
-        			country.setName(resultSet.getString("nombrePaisDepartamentoCiudadResidencia"));
-        			
-        			
-        			var state = new StateEntity();
-        			state.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idDepartamentoCiudadResidencia")));
-        			state.setName(resultSet.getString("nombreDepartamentoCiudadResidencia"));
-        			
-        			
-        			var city = new CityEntity();
-        			city.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idCiudadResidencia")));
-        			city.setName(resultSet.getString("nombreCiudadResidencia"));
-        			
-        			user.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-        			user.setIdType(idType);
-        			user.setFirstName(resultSet.getString("primerNombre"));
-        			user.setSecondName(resultSet.getString("segundoNombre"));
-        			user.setFirstLastName(resultSet.getString("primerApellido"));
-        			user.setSecondLastName(resultSet.getString("segundoApellido"));
-        			user.setResidenceCity(city);
-        			user.setEmail(resultSet.getString("correoElectronico"));
-        			user.setPhoneNumber(resultSet.getString("numeroTelefonoMovil"));
-        			user.setEmailConfirmed(resultSet.getBoolean("correoElectronicoConfirmado"));
-        			user.setMobileNumberConfirmed(resultSet.getBoolean("numeroTelefonoMovilConfirmado"));
-        		} 
-        		
-        		
-        	}catch (final SQLException exception) {
-                var userMessage = "Se ha presentado un error al tratar de consultar el usuario";
-                var technicalMessage = "se ha presentado un error al intentar consultar el usuario en la base de datos. Por favor verifique la traza completa del error";
-                throw NoseException.create(exception, userMessage, technicalMessage);
-            } catch (final Exception exception) {
-                var userMessage = "No se pudo actualizar el usuario";
-                var technicalMessage = "Se ha presentado un error inesperado al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-                throw NoseException.create(exception, userMessage, technicalMessage);
-            } catch (final Throwable exception) {
-                var userMessage = "No se pudo actualizar el usuario";
-                var technicalMessage = "Se ha presentado un error critico al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-                throw NoseException.create(exception, userMessage, technicalMessage);
-            }
-        	return user;
         } catch (final SQLException exception) {
-			var userMessage = "Se ha presentado un error al tratar de consultar el usuario";
-			var technicalMessage = "se ha presentado un error al intentar consultar el usuario en la base de datos. Por favor verifique la traza completa del error";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		} catch (final Exception exception) {
-			var userMessage = "No se pudo consultar el usuario";
-			var technicalMessage = "Se ha presentado un error inesperado al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		} catch (final Throwable exception) {
-			var userMessage = "No se pudo actualizar el usuario";
-			var technicalMessage = "Se ha presentado un error critico al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-        
-	}
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_SQL_CREATE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_SQL_CREATE.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_UNEXPECTED_CREATE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_UNEXPECTED_CREATE.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_CRITICAL_CREATE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_CRITICAL_CREATE.getContent(),
+                    (SQLException) exception
+            );
+        }
+    }
 
-	@Override
-	public void update(UserEntity entity) {
-		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+    public UserPostgresqlDAO(Connection connection) {
+        super(connection);
+        // TODO Auto-generated constructor stub
+    }
+
+    // Java
+    @Override
+    public List<UserEntity> findByFilter(UserEntity filterEntity) {
+        if (filterEntity == null) {
+            return findAll();
+        }
+
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+
+        final var sql = new StringBuilder();
+        sql.append("SELECT id, idType, firstname, secondname, firstlastname, secondlastname, ");
+        sql.append("email, phone, password, emailconfirmation, phoneconfirmation ");
+        sql.append("FROM users");
+
+        final java.util.List<String> whereClauses = new java.util.ArrayList<>();
+
+        if (filterEntity.getId() != null) {
+            whereClauses.add("id = ?");
+        }
+        if (filterEntity.getIdType() != null && filterEntity.getIdType().getId() != null) {
+            whereClauses.add("idtype = ?");
+        }
+        if (filterEntity.getFirstName() != null && !filterEntity.getFirstName().trim().isEmpty()) {
+            whereClauses.add("firstname ILIKE ?");
+        }
+        if (filterEntity.getSecondName() != null && !filterEntity.getSecondName().trim().isEmpty()) {
+            whereClauses.add("secondname ILIKE ?");
+        }
+        if (filterEntity.getFirstLastName() != null && !filterEntity.getFirstLastName().trim().isEmpty()) {
+            whereClauses.add("firstlastname ILIKE ?");
+        }
+        if (filterEntity.getSecondLastName() != null && !filterEntity.getSecondLastName().trim().isEmpty()) {
+            whereClauses.add("secondlastname ILIKE ?");
+        }
+        if (filterEntity.getEmail() != null && !filterEntity.getEmail().trim().isEmpty()) {
+            whereClauses.add("email ILIKE ?");
+        }
+        if (filterEntity.getPhoneNumber() != null && !filterEntity.getPhoneNumber().trim().isEmpty()) {
+            whereClauses.add("phonenumber ILIKE ?");
+        }
+
+
+        if (!whereClauses.isEmpty()) {
+            sql.append(" WHERE ");
+            sql.append(String.join(" AND ", whereClauses));
+        }
+
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+
+            int index = 1;
+            if (filterEntity.getId() != null) {
+                preparedStatement.setObject(index++, filterEntity.getId());
+            }
+            if (filterEntity.getIdType() != null && filterEntity.getIdType().getId() != null) {
+                preparedStatement.setObject(index++, filterEntity.getIdType().getId());
+            }
+            if (filterEntity.getFirstName() != null && !filterEntity.getFirstName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getFirstName().trim() + "%");
+            }
+            if (filterEntity.getSecondName() != null && !filterEntity.getSecondName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getSecondName().trim() + "%");
+            }
+            if (filterEntity.getFirstLastName() != null && !filterEntity.getFirstLastName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getFirstLastName().trim() + "%");
+            }
+            if (filterEntity.getSecondLastName() != null && !filterEntity.getSecondLastName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getSecondLastName().trim() + "%");
+            }
+            if (filterEntity.getEmail() != null && !filterEntity.getEmail().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getEmail().trim() + "%");
+            }
+            if (filterEntity.getPhoneNumber() != null && !filterEntity.getPhoneNumber().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getPhoneNumber().trim() + "%");
+            }
+
+
+            try (final ResultSet resultSet = preparedStatement.executeQuery()) {
+                final java.util.List<UserEntity> users = new java.util.ArrayList<>();
+                while (resultSet.next()) {
+                    final var user = new UserEntity(
+                            (UUID) resultSet.getObject("id"),
+                            resultSet.getString("firstname"),
+                            resultSet.getString("secondname"),
+                            resultSet.getString("firstlastname"),
+                            resultSet.getString("secondlastname"),
+                            resultSet.getString("identification"),
+                            new CityEntity(),
+                            new IdTypeEntity(),
+                            resultSet.getString("email"),
+                            resultSet.getString("phonenumber"),
+                            resultSet.getBoolean("emailconfirmation"),
+                            resultSet.getBoolean("phoneconfirmation")
+                    );
+                    users.add(user);
+                }
+                return users;
+            }
+
+        } catch (final SQLException exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_BY_FILTER_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_SQL.getContent(),
+                    exception
+            );
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_BY_FILTER_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_UNEXPECTED.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_BY_FILTER_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_CRITICAL.getContent(),
+                    (SQLException) exception
+            );
+        }
+    }
+
+
+    @Override
+    public List<UserEntity> findAll() {
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+
+        final var sql = new StringBuilder();
+        sql.append("SELECT id, idType, firstname, secondname, firstlastname, secondlastname, ");
+        sql.append("email, phone, username, password, emailconfirmation, phoneconfirmation ");
+        sql.append("FROM users");
+
+        final List<UserEntity> users = new java.util.ArrayList<>();
+
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+            final ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                final var user = new UserEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("firstname"),
+                        resultSet.getString("secondname"),
+                        resultSet.getString("firstlastname"),
+                        resultSet.getString("secondlastname"),
+                        resultSet.getString("identification"),
+                        new CityEntity(),
+                        new IdTypeEntity(),
+                        resultSet.getString("email"),
+                        resultSet.getString("phonenumber"),
+                        resultSet.getBoolean("emailconfirmation"),
+                        resultSet.getBoolean("phoneconfirmation")
+                );
+                users.add(user);
+            }
+            return users;
+
+        } catch (final SQLException exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_ALL_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_ALL_SQL.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Exception exception) {
+            throw new NoseException(
+                MessagesEnum.USER_ERROR_FIND_ALL_UNEXPECTED.getContent(),
+                MessagesEnum.TECHNICAL_ERROR_FIND_ALL_UNEXPECTED.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Throwable exception) {
+            throw new NoseException(
+              MessagesEnum.USER_ERROR_FIND_ALL_CRITICAL.getContent(),
+              MessagesEnum.TECHNICAL_ERROR_FIND_ALL_CRITICAL.getContent(),
+                    (SQLException) exception
+            );
+        }
+    }
+
+
+
+    @Override
+    public UserEntity findById(UUID id) {
+
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+
+        final var sql = new StringBuilder();
+
+        sql.append("SELECT id, identitydocument, name, firstlastname, secondlastname, email, phone, username, " +
+                "password, emailconfirmation, phoneconfirmation FROM users WHERE id = ?");
+
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+
+            preparedStatement.setObject(1, id);
+            final ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return new UserEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("firstname"),
+                        resultSet.getString("secondname"),
+                        resultSet.getString("firstlastname"),
+                        resultSet.getString("secondlastname"),
+                        resultSet.getString("identification"),
+                        new CityEntity(),
+                        new IdTypeEntity(),
+                        resultSet.getString("email"),
+                        resultSet.getString("phonenumber"),
+                        resultSet.getBoolean("emailconfirmation"),
+                        resultSet.getBoolean("phoneconfirmation")
+                );
+            } else {
+                return null;
+            }
+
+        } catch (SQLException exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_BY_ID_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_SQL.getContent(),
+                    exception
+            );
+        } catch (Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_BY_ID_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_UNEXPECTED.getContent(),
+                    (SQLException) exception
+            );
+        } catch (Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_FIND_BY_ID_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_CRITICAL.getContent(),
+                    (SQLException) exception
+            );
+        }
+    }
+
+    @Override
+    public void update(UserEntity entity) {
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
         final var sql = new StringBuilder();
         sql.append("UPDATE User SET idType = ?, phoneNumber = ?, firstName = ?, secondName = ?, firstLastName = ?, secondLastName = ?, residenceCity = ?, email = ?, phoneNumber = ?, emailConfirmed = ?, mobileNumberConfirmed = ? WHERE id = ?");
         try (var preparedStatement = this.getConnection().prepareStatement(sql.toString())) {
@@ -388,42 +320,57 @@ public final class UserPostgresqlDAO extends SqlConnection implements UserDAO {
             preparedStatement.setBoolean(11, entity.isMobileNumberConfirmed());
             preparedStatement.setObject(12, entity.getId());
             preparedStatement.executeUpdate();
-        } catch (final SQLException exception) {
-            var userMessage = "No se pudo actualizar el usuario";
-            var technicalMessage = "Se ha presentado un error al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Exception exception) {
-            var userMessage = "No se pudo actualizar el usuario";
-            var technicalMessage = "Se ha presentado un error inesperado al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Throwable exception) {
-            var userMessage = "No se pudo actualizar el usuario";
-            var technicalMessage = "Se ha presentado un error critico al intentar actualizar el usuario en la base de datos. Por favor verifique la traza completa del error";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        }
-	}
 
-	@Override
-	public void delete(UUID id) {
-		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+        } catch (final SQLException exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_SQL_UPDATE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_SQL_UPDATE.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_UNEXPECTED_UPDATE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_UNEXPECTED_UPDATE.getContent(),
+                    (SQLException) exception
+            );
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_CRITICAL_UPDATE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_CRITICAL_UPDATE.getContent(),
+                    (SQLException) exception
+            );
+        }
+    }
+
+    @Override
+    public void delete(UUID id) {
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
         final var sql = new StringBuilder();
         sql.append("DELETE FROM User WHERE id = ?");
         try (var preparedStatement = this.getConnection().prepareStatement(sql.toString())) {
             preparedStatement.setObject(1, id);
             preparedStatement.executeUpdate();
+
         } catch (final SQLException exception) {
-            var userMessage = "No se pudo eliminar el usuario";
-            var technicalMessage = "Se ha presentado un error al intentar eliminar el usuario en la base de datos. Por favor verifique la traza completa del error";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_SQL_DELETE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_SQL_UPDATE.getContent(),
+                    (SQLException) exception
+            );
         } catch (final Exception exception) {
-            var userMessage = "No se pudo eliminar el usuario";
-            var technicalMessage = "Se ha presentado un error inesperado al intentar eliminar el usuario en la base de datos. Por favor verifique la traza completa del error";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_UNEXPECTED_DELETE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_UNEXPECTED_DELETE.getContent(),
+                    (SQLException) exception
+            );
         } catch (final Throwable exception) {
-            var userMessage = "No se pudo eliminar el usuario";
-            var technicalMessage = "Se ha presentado un error critico al intentar eliminar el usuario en la base de datos. Por favor verifique la traza completa del error";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.USER_ERROR_CRITICAL_DELETE.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_CRITICAL_DELETE.getContent(),
+                    (SQLException) exception
+            );
         }
     }
-	
+
 }
+

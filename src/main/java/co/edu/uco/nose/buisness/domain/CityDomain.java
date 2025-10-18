@@ -8,6 +8,7 @@ import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
 public class CityDomain extends Domain{
 	
 	private String name;
+	private UUID id;
 	
 	public CityDomain() {
 		super(UUIDHelper.getUUIDHelper().getDefault());
@@ -34,6 +35,14 @@ public class CityDomain extends Domain{
 	public void setName(final String name) {
 		this.name = TextHelper.getDefaultWithTrim(name);
 	}
+	
+	public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = UUIDHelper.getUUIDHelper().getDefault(id);
+    }
 	
 	
 

@@ -1,168 +1,171 @@
 package co.edu.uco.nose.data.dao.entity.postgresql;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import co.edu.uco.nose.crosscuting.exception.NoseException;
-import co.edu.uco.nose.crosscuting.helper.SqlConnectionHelper;
-import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
-import co.edu.uco.nose.data.dao.entity.SqlConnection;
+import co.edu.uco.nose.crosscuting.messagescatalog.MessagesEnum;
+import co.edu.uco.nose.data.dao.entity.*;
 import co.edu.uco.nose.data.dao.entity.StateDAO;
 import co.edu.uco.nose.entity.CountryEntity;
 import co.edu.uco.nose.entity.StateEntity;
 
 public final class StatePostgresqlDAO extends SqlConnection implements StateDAO {
-    
-    public StatePostgresqlDAO(final Connection connection) {
-        super(connection);
-    }
 
+    public StatePostgresqlDAO(Connection connection2) {
+        super(connection2);
+    }
 
     @Override
     public List<StateEntity> findAll() {
+        final StringBuilder sql = new StringBuilder();
+        sql.append("SELECT id, name FROM state");
 
-        final var states = new ArrayList<StateEntity>();
-        final var sql = new StringBuilder();
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString());
+             final ResultSet resultSet = preparedStatement.executeQuery()) {
 
-        sql.append("SELECT d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
-        sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-        sql.append("FROM Departamento AS d ");
-        sql.append("INNER JOIN Pais AS p ON d.pais = p.id");
-
-        try (var preparedStatement = getConnection().prepareStatement(sql.toString());
-             var resultSet = preparedStatement.executeQuery()) {
+            final List<StateEntity> results = new ArrayList<>();
 
             while (resultSet.next()) {
-                var country = new CountryEntity();
-                country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idPais")));
-                country.setName(resultSet.getString("nombrePais"));
-
-                var state = new StateEntity();
-                state.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idDepartamento")));
-                state.setName(resultSet.getString("nombreDepartamento"));
-                state.setCountry(country);
-
-                states.add(state);
+                var state = new StateEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("name"),
+                        new CountryEntity()
+                );
+                results.add(state);
             }
 
+            return results;
+
         } catch (final SQLException exception) {
-            var userMessage = "Error al consultar los departamentos.";
-            var technicalMessage = "Error SQL al intentar listar los departamentos.";
+            var userMessage = MessagesEnum.STATE_ERROR_FIND_ALL_SQL.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_FIND_ALL_SQL_STATE.getContent();
             throw NoseException.create(exception, userMessage, technicalMessage);
+
         } catch (final Exception exception) {
-            var userMessage = "No se pudo listar los departamentos.";
-            var technicalMessage = "Error inesperado al procesar la consulta de departamentos.";
+            var userMessage = MessagesEnum.STATE_ERROR_FIND_ALL_UNEXPECTED.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_FIND_ALL_UNEXPECTED_STATE.getContent();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+
+        } catch (final Throwable exception) {
+            var userMessage = MessagesEnum.STATE_ERROR_FIND_ALL_CRITICAL.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_FIND_ALL_CRITICAL_STATE.getContent();
             throw NoseException.create(exception, userMessage, technicalMessage);
         }
-
-        return states;
     }
 
     @Override
-    public List<StateEntity> findByFilter(final StateEntity filterEntity) {
+    public List<StateEntity> findByFilter(StateEntity filterEntity) {
+        if (filterEntity == null) {
+            return findAll();
+        }
 
-        final var states = new ArrayList<StateEntity>();
-        final var sql = new StringBuilder();
+        final StringBuilder sql = new StringBuilder();
+        sql.append("SELECT id, name FROM state");
 
-        sql.append("SELECT d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
-        sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-        sql.append("FROM Departamento AS d ");
-        sql.append("INNER JOIN Pais AS p ON d.pais = p.id ");
-        sql.append("WHERE 1=1 ");
+        final List<String> whereClauses = new ArrayList<>();
+        if (filterEntity.getId() != null) {
+            whereClauses.add("id = ?");
+        }
+        if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+            whereClauses.add("name ILIKE ?");
+        }
 
-        final var parameters = new ArrayList<Object>();
+        if (!whereClauses.isEmpty()) {
+            sql.append(" WHERE ");
+            sql.append(String.join(" AND ", whereClauses));
+        }
 
-        if (filterEntity != null) {
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+
+            int index = 1;
             if (filterEntity.getId() != null) {
-                sql.append("AND d.id = ? ");
-                parameters.add(filterEntity.getId());
+                preparedStatement.setObject(index++, filterEntity.getId());
             }
-            if (filterEntity.getName() != null && !filterEntity.getName().isBlank()) {
-                sql.append("AND LOWER(d.nombre) LIKE LOWER(?) ");
-                parameters.add("%" + filterEntity.getName() + "%");
-            }
-            if (filterEntity.getCountry() != null && filterEntity.getCountry().getId() != null) {
-                sql.append("AND p.id = ? ");
-                parameters.add(filterEntity.getCountry().getId());
-            }
-        }
-
-        try (var preparedStatement = getConnection().prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < parameters.size(); i++) {
-                preparedStatement.setObject(i + 1, parameters.get(i));
+            if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getName().trim() + "%");
             }
 
-            try (var resultSet = preparedStatement.executeQuery()) {
+            try (final ResultSet resultSet = preparedStatement.executeQuery()) {
+                final List<StateEntity> results = new ArrayList<>();
                 while (resultSet.next()) {
-                    var country = new CountryEntity();
-                    country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idPais")));
-                    country.setName(resultSet.getString("nombrePais"));
-
-                    var state = new StateEntity();
-                    state.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idDepartamento")));
-                    state.setName(resultSet.getString("nombreDepartamento"));
-                    state.setCountry(country);
-
-                    states.add(state);
+                    results.add(new StateEntity(
+                            (UUID) resultSet.getObject("id"),
+                            resultSet.getString("name"),
+                            new CountryEntity()
+                    ));
                 }
+                return results;
             }
 
         } catch (final SQLException exception) {
-            var userMessage = "Error al consultar los departamentos filtrados.";
-            var technicalMessage = "Error SQL al ejecutar la consulta dinámica de departamentos.";
+            var userMessage = MessagesEnum.STATE_ERROR_FIND_BY_FILTER_SQL.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_SQL_STATE.getContent();
             throw NoseException.create(exception, userMessage, technicalMessage);
+
         } catch (final Exception exception) {
-            var userMessage = "No se pudo ejecutar el filtro de departamentos.";
-            var technicalMessage = "Error inesperado al procesar los parámetros de búsqueda de departamentos.";
+            var userMessage = MessagesEnum.STATE_ERROR_FIND_BY_FILTER_UNEXPECTED.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_UNEXPECTED_STATE.getContent();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+
+        } catch (final Throwable exception) {
+            var userMessage = MessagesEnum.STATE_ERROR_FIND_BY_FILTER_CRITICAL.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_CRITICAL_STATE.getContent();
             throw NoseException.create(exception, userMessage, technicalMessage);
         }
-
-        return states;
     }
 
+
+
     @Override
-    public StateEntity findById(final UUID id) {
+	public StateEntity findById(UUID id) {
+        final StringBuilder sql = new StringBuilder();
+        sql.append("SELECT id, name FROM state WHERE id = ?");
 
-        var state = new StateEntity();
-        final var sql = new StringBuilder();
-
-        sql.append("SELECT d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
-        sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-        sql.append("FROM Departamento AS d ");
-        sql.append("INNER JOIN Pais AS p ON d.pais = p.id ");
-        sql.append("WHERE d.id = ?");
-
-        try (var preparedStatement = getConnection().prepareStatement(sql.toString())) {
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
             preparedStatement.setObject(1, id);
 
-            try (var resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    var country = new CountryEntity();
-                    country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idPais")));
-                    country.setName(resultSet.getString("nombrePais"));
+            final ResultSet resultSet = preparedStatement.executeQuery();
 
-                    state.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("idDepartamento")));
-                    state.setName(resultSet.getString("nombreDepartamento"));
-                    state.setCountry(country);
-                }
+            if (resultSet.next()) {
+                return new StateEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("name"),
+                        new CountryEntity()
+                		);
             }
 
+            return null;
+
         } catch (final SQLException exception) {
-            var userMessage = "Error al consultar el departamento.";
-            var technicalMessage = "Error SQL al buscar un departamento por ID.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.STATE_ERROR_FIND_BY_ID_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_SQL_STATE.getContent(),
+                    exception
+            );
+
+
         } catch (final Exception exception) {
-            var userMessage = "No se pudo consultar el departamento.";
-            var technicalMessage = "Error inesperado al intentar consultar el departamento.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.STATE_ERROR_FIND_BY_ID_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_UNEXPECTED_STATE.getContent(),
+                    (SQLException) exception
+
+            );
+
+
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.STATE_ERROR_FIND_BY_ID_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_CRITICAL_STATE.getContent(),
+                    (SQLException) exception
+        );
         }
-
-        return state;
     }
-
-
 }
+

@@ -9,43 +9,56 @@ import java.util.List;
 import java.util.UUID;
 
 import co.edu.uco.nose.crosscuting.exception.NoseException;
-import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
+import co.edu.uco.nose.crosscuting.helper.SqlConnectionHelper;
+import co.edu.uco.nose.crosscuting.messagescatalog.MessagesEnum;
 import co.edu.uco.nose.data.dao.entity.CountryDAO;
-import co.edu.uco.nose.data.dao.entity.SqlConnection;
+import co.edu.uco.nose.data.dao.entity.*;
 import co.edu.uco.nose.entity.CountryEntity;
 
-public final class CountryPostgresqlDAO extends SqlConnection implements CountryDAO {
+public final class CountryPostgresqlDAO extends SqlConnection implements CountryDAO{
 
     public CountryPostgresqlDAO(Connection connection) {
         super(connection);
     }
 
+
     @Override
     public List<CountryEntity> findAll() {
-        final var sql = new StringBuilder();
-        sql.append("SELECT id, nombre ");
-        sql.append("FROM Pais");
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
+        final String sql = "SELECT id, name FROM country";
         final List<CountryEntity> countries = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString());
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql);
+             final ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
-                var country = new CountryEntity();
-                country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-                country.setName(resultSet.getString("nombre"));
-                countries.add(country);
+                countries.add(new CountryEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("name")
+                ));
             }
 
         } catch (final SQLException exception) {
-            var userMessage = "Error al intentar consultar los países.";
-            var technicalMessage = "Error al ejecutar la sentencia SQL en findAll() de CountryPostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_ALL_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_ALL_SQL_COUNTRY.getContent(),
+                    exception
+            );
+
         } catch (final Exception exception) {
-            var userMessage = "Se presentó un error inesperado al consultar los países.";
-            var technicalMessage = "Excepción inesperada en findAll() de CountryPostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_ALL_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_ALL_UNEXPECTED_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_ALL_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_ALL_CRITICAL_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
         }
 
         return countries;
@@ -53,81 +66,121 @@ public final class CountryPostgresqlDAO extends SqlConnection implements Country
 
     @Override
     public List<CountryEntity> findByFilter(CountryEntity filterEntity) {
-        final var sql = new StringBuilder();
-        sql.append("SELECT id, nombre ");
-        sql.append("FROM Pais ");
-        sql.append("WHERE 1=1 ");
+        if (filterEntity == null) {
+            return findAll();
+        }
 
-        final List<Object> parameters = new ArrayList<>();
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+
+        final var sql = new StringBuilder();
+        sql.append("SELECT id, name FROM country");
+
+        final List<String> whereClauses = new ArrayList<>();
 
         if (filterEntity.getId() != null) {
-            sql.append("AND id = ? ");
-            parameters.add(filterEntity.getId());
+            whereClauses.add("id = ?");
         }
-        if (filterEntity.getName() != null && !filterEntity.getName().isBlank()) {
-            sql.append("AND LOWER(nombre) LIKE LOWER(?) ");
-            parameters.add("%" + filterEntity.getName() + "%");
+        if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+            whereClauses.add("name ILIKE ?");
+        }
+
+        if (!whereClauses.isEmpty()) {
+            sql.append(" WHERE ");
+            sql.append(String.join(" AND ", whereClauses));
         }
 
         final List<CountryEntity> countries = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
-            for (int i = 0; i < parameters.size(); i++) {
-                preparedStatement.setObject(i + 1, parameters.get(i));
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+
+            int index = 1;
+            if (filterEntity.getId() != null) {
+                preparedStatement.setObject(index++, filterEntity.getId());
+            }
+            if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+                preparedStatement.setString(index++, "%" + filterEntity.getName().trim() + "%");
             }
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            try (final ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    var country = new CountryEntity();
-                    country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-                    country.setName(resultSet.getString("nombre"));
-                    countries.add(country);
+                    countries.add(new CountryEntity(
+                            (UUID) resultSet.getObject("id"),
+                            resultSet.getString("name")
+                    ));
                 }
+                return countries;
             }
 
         } catch (final SQLException exception) {
-            var userMessage = "Error al intentar consultar países con filtro.";
-            var technicalMessage = "Error al ejecutar la sentencia SQL en findByFilter() de CountryPostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Exception exception) {
-            var userMessage = "Se presentó un error inesperado al consultar países con filtro.";
-            var technicalMessage = "Excepción inesperada en findByFilter() de CountryPostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        }
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_BY_FILTER_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_SQL_COUNTRY.getContent(),
+                    exception
+            );
 
-        return countries;
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_BY_FILTER_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_UNEXPECTED_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_BY_FILTER_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_FILTER_CRITICAL_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
+        }
     }
+
+
 
     @Override
-    public CountryEntity findById(UUID id) {
-        final var sql = new StringBuilder();
-        sql.append("SELECT id, nombre ");
-        sql.append("FROM Pais ");
-        sql.append("WHERE id = ?");
+    public CountryEntity findById(final UUID id) {
 
-        CountryEntity country = null;
+        SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(sql.toString())) {
+        final String sql = "SELECT id, name FROM country WHERE id = ?";
+
+        try (final PreparedStatement preparedStatement = getConnection().prepareStatement(sql)) {
+
             preparedStatement.setObject(1, id);
+            final ResultSet resultSet = preparedStatement.executeQuery();
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    country = new CountryEntity();
-                    country.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-                    country.setName(resultSet.getString("nombre"));
-                }
+            if (resultSet.next()) {
+                return new CountryEntity(
+                        (UUID) resultSet.getObject("id"),
+                        resultSet.getString("name")
+                );
             }
 
-        } catch (final SQLException exception) {
-            var userMessage = "Error al intentar consultar el país.";
-            var technicalMessage = "Error al ejecutar la sentencia SQL en findById() de CountryPostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        } catch (final Exception exception) {
-            var userMessage = "Se presentó un error inesperado al consultar el país.";
-            var technicalMessage = "Excepción inesperada en findById() de CountryPostgresqlDAO.";
-            throw NoseException.create(exception, userMessage, technicalMessage);
-        }
+            return null;
 
-        return country;
+        } catch (final SQLException exception) {
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_BY_ID_SQL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_SQL_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Exception exception) {
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_BY_ID_UNEXPECTED.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_UNEXPECTED_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
+
+        } catch (final Throwable exception) {
+            throw new NoseException(
+                    MessagesEnum.COUNTRY_ERROR_FIND_BY_ID_CRITICAL.getContent(),
+                    MessagesEnum.TECHNICAL_ERROR_FIND_BY_ID_CRITICAL_COUNTRY.getContent(),
+                    (SQLException) exception
+            );
+        }
     }
+
+
 }
+
+

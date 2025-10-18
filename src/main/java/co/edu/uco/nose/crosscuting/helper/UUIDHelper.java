@@ -27,4 +27,8 @@ public final class UUIDHelper {
 				:UUID.fromString(uuidAsString);
 		
 	}
+	
+	public UUID generateNewUUID() {
+		return UUID.randomUUID();
+	}
 }

@@ -69,7 +69,7 @@ public final class PostgresqlDAOFactory extends DAOFactory {
 
 
     @Override
-    protected final void initTransaction() {
+    public final void initTransaction() {
         SqlConnectionHelper.ensureTransactionIsNotStarted(connection);
         try {
             connection.setAutoCommit(false);
@@ -81,7 +81,7 @@ public final class PostgresqlDAOFactory extends DAOFactory {
     }
 
     @Override
-    protected final void commitTransaction() {
+    public final void commitTransaction() {
         SqlConnectionHelper.ensureTransactionIsStarted(connection);
         try {
             connection.commit();
@@ -93,7 +93,7 @@ public final class PostgresqlDAOFactory extends DAOFactory {
     }
 
     @Override
-    protected final void rollbackTransaction() {
+    public final void rollbackTransaction() {
         SqlConnectionHelper.ensureTransactionIsStarted(connection);
         try {
             connection.rollback();
@@ -105,7 +105,7 @@ public final class PostgresqlDAOFactory extends DAOFactory {
     }
 
     @Override
-    protected final void closeConnection() {
+    public final void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();

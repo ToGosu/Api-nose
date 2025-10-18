@@ -17,6 +17,7 @@ public class UserDomain extends Domain {
     private String phoneNumber;
     private boolean emailConfirmed;
     private boolean mobileNumberConfirmed;
+    private UUID id;
 
     public UserDomain() {
         super(UUIDHelper.getUUIDHelper().getDefault());
@@ -119,5 +120,13 @@ public class UserDomain extends Domain {
     }
     public void setMobileNumberConfirmed(final boolean mobileNumberConfirmed) {
         this.mobileNumberConfirmed = mobileNumberConfirmed;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = UUIDHelper.getUUIDHelper().getDefault(id);
     }
 }
