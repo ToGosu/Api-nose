@@ -7,8 +7,8 @@ import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
 public class Entity {
 	private UUID id;
 	
-	protected Entity(final UUID id) {
-		
+	protected Entity (final UUID id) {
+		setId(id);
 	}
 
 	public UUID getId() {
@@ -18,4 +18,5 @@ public class Entity {
 	public void setId(UUID id) {
 		this.id = UUIDHelper.getUUIDHelper().getDefault(id);
 	}
+	
 }

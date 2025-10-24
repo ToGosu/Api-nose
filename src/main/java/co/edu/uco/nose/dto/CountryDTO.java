@@ -14,18 +14,16 @@ public final class CountryDTO extends DTO{
 		super(UUIDHelper.getUUIDHelper().getDefault());
 		setName(TextHelper.getDefault());
 	}
-
-	public CountryDTO(final UUID id) {
+	
+	public CountryDTO (final UUID id) {
 		super(id);
 		setName(TextHelper.getDefault());
 	}
 	
-	public CountryDTO(final UUID id,final String name) {
+	public CountryDTO(final UUID id, final String name) {
 		super(id);
-		this.name = name;
+		setName(name);
 	}
-
-	
 
 	public String getName() {
 		return name;
@@ -33,6 +31,10 @@ public final class CountryDTO extends DTO{
 
 	public void setName(final String name) {
 		this.name = TextHelper.getDefaultWithTrim(name);
+	}
+	
+	public static CountryDTO createDefault() {
+		return new CountryDTO();
 	}
 	
 	

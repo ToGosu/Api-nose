@@ -14,15 +14,14 @@ public class CountryEntity extends Entity{
 		setName(TextHelper.getDefault());
 	}
 	
-
-	public CountryEntity(final UUID id) {
+	public CountryEntity (final UUID id) {
 		super(id);
 		setName(TextHelper.getDefault());
 	}
 	
-	public CountryEntity(final UUID id,final String name) {
+	public CountryEntity(final UUID id, final String name) {
 		super(id);
-		this.name = name;
+		setName(name);
 	}
 
 	public String getName() {
@@ -31,6 +30,10 @@ public class CountryEntity extends Entity{
 
 	public void setName(final String name) {
 		this.name = TextHelper.getDefaultWithTrim(name);
+	}
+	
+	public static CountryEntity createDefault() {
+		return new CountryEntity();
 	}
 
 }

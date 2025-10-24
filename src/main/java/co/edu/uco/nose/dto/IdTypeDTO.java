@@ -9,42 +9,33 @@ import java.util.UUID;
 
 public class IdTypeDTO extends DTO {
 	
-	private String name;
-	private String description;
+	private String nombre;
 	
 	public IdTypeDTO() {
 		super(UUIDHelper.getUUIDHelper().getDefault());
-		setName(TextHelper.getDefault());
-		setDescription(TextHelper.getDefault());
+		setNombre(TextHelper.getDefault());
 	}
 	
 	public IdTypeDTO(final UUID id) {
 		super(id);
-		setName(TextHelper.getDefault());
-		setDescription(TextHelper.getDefault());
+		setNombre(TextHelper.getDefault());
 	}
 	
-	public IdTypeDTO(final UUID id,final String name) {
+	public IdTypeDTO(final UUID id, final String nombre) {
 		super(id);
-		this.name = name;
-		this.description = TextHelper.getDefault();
-		
+		setNombre(nombre);
 	}
 
-	public String getName() {
-		return name;
+	public String getNombre() {
+		return nombre;
 	}
 
-	public void setName(String name) {
-		this.name = TextHelper.getDefaultWithTrim(name);
+	public void setNombre(String nombre) {
+		this.nombre = TextHelper.getDefault(nombre);
 	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = TextHelper.getDefaultWithTrim(description);
+	
+	public static IdTypeDTO createDefault() {
+		return new IdTypeDTO();
 	}
 	
 	

@@ -7,8 +7,8 @@ import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
 public class DTO {
 	private UUID id;
 	
-	protected DTO(final UUID id) {
-		
+	protected DTO (final UUID id) {
+		setId(id);
 	}
 
 	public UUID getId() {
