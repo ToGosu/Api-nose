@@ -24,13 +24,13 @@ public class TestUserRegistration {
 
             user.setIdType(idType);
             user.setHomeCity(city);
-            user.setIdNumber("1040871105");
-            user.setFirstName("Juan");
-            user.setFirstSurname("Pablo");
-            user.setSecondName("Alzate");
-            user.setSecondSurname("Pulgarin");
-            user.setEmail("juan.alzate1104@uco.net.co");
-            user.setMobileNumber("3207793196");
+            user.setIdNumber("1040870381");
+            user.setFirstName("Santiago");
+            user.setFirstSurname("Torres");
+            user.setSecondName(null);
+            user.setSecondSurname("Castaño");
+            user.setEmail("santiago.torres0381@uco.net.co");
+            user.setMobileNumber("3195809523");
 
             var facade = new UserFacadeImpl();
 

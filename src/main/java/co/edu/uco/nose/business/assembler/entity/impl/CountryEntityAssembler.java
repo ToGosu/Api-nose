@@ -9,27 +9,8 @@ import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
 import co.edu.uco.nose.entity.CountryEntity;
 
 public class CountryEntityAssembler implements EntityAssembler<CountryEntity, CountryDomain> {
-/**
-	@Override
-	public CountryEntity toEntity(CountryDomain domain) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CountryDomain toDomain(CountryEntity entity) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<CountryEntity> toDTO(List<CountryDomain> domainList) {
-		// TODO Auto-generated method stub
-		return null;
-	}**/
 	
-    private static final EntityAssembler<CountryEntity,CountryDomain> instance =
-            new CountryEntityAssembler();
+    private static final EntityAssembler<CountryEntity,CountryDomain> instance = new CountryEntityAssembler();
 
     private CountryEntityAssembler() {
 

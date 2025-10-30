@@ -8,24 +8,6 @@ import co.edu.uco.nose.crosscuting.helper.ObjectHelper;
 import co.edu.uco.nose.entity.CityEntity;
 
 public class CityEntityAssembler implements EntityAssembler<CityEntity, CityDomain> {
-/**
-	@Override
-	public CityEntity toEntity(CityDomain domain) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CityDomain toDomain(CityEntity entity) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<CityEntity> toDTO(List<CityDomain> domainList) {
-		// TODO Auto-generated method stub
-		return null;
-	}**/
 	
     private static final EntityAssembler<CityEntity, CityDomain> instance = new CityEntityAssembler();
 

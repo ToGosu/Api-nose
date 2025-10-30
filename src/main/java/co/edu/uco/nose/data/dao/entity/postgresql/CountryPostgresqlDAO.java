@@ -2,7 +2,6 @@ package co.edu.uco.nose.data.dao.entity.postgresql;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,6 @@ import co.edu.uco.nose.crosscuting.helper.TextHelper;
 import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
 import co.edu.uco.nose.crosscuting.messagescatalog.MessagesEnum;
 import co.edu.uco.nose.data.dao.entity.CountryDAO;
-import co.edu.uco.nose.data.dao.entity.*;
 import co.edu.uco.nose.entity.CountryEntity;
 
 public final class CountryPostgresqlDAO extends SqlConnection implements CountryDAO{

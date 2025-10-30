@@ -8,24 +8,6 @@ import co.edu.uco.nose.crosscuting.helper.ObjectHelper;
 import co.edu.uco.nose.entity.IdTypeEntity;
 
 public class IdTypeEntityAssembler implements EntityAssembler<IdTypeEntity, IdTypeDomain> {
-/**
-	@Override
-	public IdTypeEntity toEntity(IdTypeDomain domain) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IdTypeDomain toDomain(IdTypeEntity entity) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<IdTypeEntity> toDTO(List<IdTypeDomain> domainList) {
-		// TODO Auto-generated method stub
-		return null;
-	}**/
 
     private static final EntityAssembler<IdTypeEntity, IdTypeDomain> instance = new IdTypeEntityAssembler();
 

@@ -24,7 +24,7 @@ public class PruebaConnection {
 
         try {
             factory.initTransaction();
-            System.out.println("✅ Transacción iniciada correctamente");
+            System.out.println("Transacción iniciada correctamente");
 
             var userDAO = factory.getUserDAO();
             UUID usuarioId = UUID.randomUUID();
@@ -46,25 +46,25 @@ public class PruebaConnection {
             UserEntity user = new UserEntity();
             user.setId(usuarioId);
             user.setIdType(idType);
-            user.setIdNumber("987654321");
-            user.setFirstName("Ana");
+            user.setIdNumber("43795619");
+            user.setFirstName("Maria");
             user.setSecondName(null);
-            user.setFirstSurname("Gomez");
-            user.setSecondSurname("Arias");
+            user.setFirstSurname("Castaño");
+            user.setSecondSurname("Gomez");
             user.setHomeCity(city);
-            user.setEmail("ana.gomez@example.com");
-            user.setMobileNumber("3109876543");
+            user.setEmail("yanet31@example.com");
+            user.setMobileNumber("3207614698");
             user.setEmailConfirmed(false);
             user.setMobileNumberConfirmed(false);
 
             // 1. Probamos CREATE
             userDAO.create(user);
-            System.out.println("✅ (CREATE) Usuario insertado correctamente.");
+            System.out.println("Usuario insertado correctamente.");
 
             // 2. Probamos FIND BY ID
             UserEntity retrievedUser = userDAO.findById(usuarioId);
             if (!UUIDHelper.getUUIDHelper().isDefaultUUID(retrievedUser.getId())) {
-                System.out.println("\n🔍 (FIND) Usuario encontrado: " + retrievedUser.getFirstName());
+                System.out.println("Usuario encontrado: " + retrievedUser.getFirstName());
             } else {
                 throw new Exception("Error: El usuario recién creado no fue encontrado.");
             }
@@ -72,30 +72,30 @@ public class PruebaConnection {
             // 3. Probamos UPDATE
             retrievedUser.setMobileNumberConfirmed(true);
             userDAO.update(retrievedUser);
-            System.out.println("✏️ (UPDATE) Usuario actualizado correctamente.");
+            System.out.println("Usuario actualizado correctamente.");
 
             // 4. Probamos DELETE
             userDAO.delete(usuarioId);
-            System.out.println("🗑️ (DELETE) Usuario eliminado correctamente.");
+            System.out.println("Usuario eliminado correctamente.");
 
             UserEntity deletedUser = userDAO.findById(usuarioId);
             if(UUIDHelper.getUUIDHelper().isDefaultUUID(deletedUser.getId())) {
-                System.out.println("✅ Verificación de borrado exitosa.");
+                System.out.println("Verificación de borrado exitosa.");
             } else {
                 throw new Exception("Error: El usuario no fue eliminado correctamente.");
             }
 
             factory.commitTransaction();
-            System.out.println("\n✅ Transacción confirmada (COMMIT)");
+            System.out.println("Transacción confirmada");
 
         } catch (final Exception exception) {
-            System.out.println("❌ Ocurrió un error, revirtiendo transacción...");
+            System.out.println("Ocurrió un error, revirtiendo transacción...");
             factory.rollbackTransaction();
             exception.printStackTrace();
 
         } finally {
             factory.closeConnection();
-            System.out.println("🔌 Conexión cerrada.");
+            System.out.println("Conexión cerrada.");
         }
     }
 }
