@@ -37,7 +37,7 @@ public final class IdTypePostgresqlDAO extends SqlConnection implements IdTypeDA
 		SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
 
 		final List<IdTypeEntity> idTypes = new ArrayList<>();
-		final String sql = "SELECT id, nombre FROM TipoIdentificacion";
+		final String sql = "SELECT id, nombre FROM apinosedb.tipo_identificacion";
 
 		try (var preparedStatement = getConnection().prepareStatement(sql);
 			 var resultSet = preparedStatement.executeQuery()) {
@@ -67,7 +67,7 @@ public final class IdTypePostgresqlDAO extends SqlConnection implements IdTypeDA
 		SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
 
 		final List<IdTypeEntity> idTypes = new ArrayList<>();
-		final var sql = new StringBuilder("SELECT id, nombre FROM TipoIdentificacion WHERE 1=1 ");
+		final var sql = new StringBuilder("SELECT id, nombre FROM apinosedb.tipo_identificacion WHERE 1=1 ");
 		final var parameters = new ArrayList<Object>();
 
 		if (filterEntity.getId() != null && !UUIDHelper.getUUIDHelper().getDefault().equals(filterEntity.getId())) {
@@ -109,7 +109,7 @@ public final class IdTypePostgresqlDAO extends SqlConnection implements IdTypeDA
 	public IdTypeEntity findById(final UUID id) {
 		SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
 		IdTypeEntity idType = null;
-		final String sql = "SELECT id, nombre FROM TipoIdentificacion WHERE id = ?";
+		final String sql = "SELECT id, nombre FROM apinosedb.tipo_identificacion WHERE id = ?";
 
 		try (var preparedStatement = getConnection().prepareStatement(sql)) {
 			preparedStatement.setObject(1, id);

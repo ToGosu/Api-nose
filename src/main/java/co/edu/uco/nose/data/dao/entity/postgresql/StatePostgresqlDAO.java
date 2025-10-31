@@ -44,8 +44,8 @@ public final class StatePostgresqlDAO extends SqlConnection implements StateDAO 
 		final var sql = new StringBuilder();
 		sql.append("SELECT d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
 		sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-		sql.append("FROM Departamento d ");
-		sql.append("INNER JOIN Pais p ON d.pais = p.id ");
+		sql.append("FROM apinosedb.Departamento d ");
+		sql.append("INNER JOIN apinosedb.Pais p ON d.pais = p.id ");
 
 		try (var preparedStatement = getConnection().prepareStatement(sql.toString());
 			 var resultSet = preparedStatement.executeQuery()) {
@@ -77,8 +77,8 @@ public final class StatePostgresqlDAO extends SqlConnection implements StateDAO 
 
 		sql.append("SELECT d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
 		sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-		sql.append("FROM Departamento d ");
-		sql.append("INNER JOIN Pais p ON d.pais = p.id ");
+		sql.append("FROM apinosedb.Departamento d ");
+		sql.append("INNER JOIN apinosedb.Pais p ON d.pais = p.id ");
 		sql.append("WHERE 1=1 ");
 
 		// Construcción dinámica del WHERE

@@ -31,7 +31,7 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
 		final var sql = new StringBuilder();
-		sql.append("INSERT INTO \"usuario\" (");
+		sql.append("INSERT INTO apinosedb.usuario (");
 		sql.append("id, tipo_identificacion_id, numero_identificacion, primer_nombre, segundo_nombre, ");
 		sql.append("primer_apellido, segundo_apellido, ciudad_id, correo_electronico, ");
 		sql.append("numero_telefono_movil, correo_electronico_confirmado, numero_telefono_movil_confirmado) ");
@@ -66,7 +66,7 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
 		final var sql = new StringBuilder();
-		sql.append("UPDATE usuario SET ");
+		sql.append("UPDATE apinosedb.usuario SET ");
 		sql.append("tipo_identificacion_id = ?, ");
 		sql.append("numero_identificacion = ?, ");
 		sql.append("primer_nombre = ?, ");
@@ -108,7 +108,7 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 	public void delete(final UUID id) {
 		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
-		final var sql = "DELETE FROM usuario WHERE id = ?";
+		final var sql = "DELETE FROM apinosedb.usuario WHERE id = ?";
 
 		try (var preparedStatement = this.getConnection().prepareStatement(sql)) {
 			preparedStatement.setObject(1, id);
@@ -172,11 +172,11 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 		sql.append("u.numero_telefono_movil, ");
 		sql.append("u.correo_electronico_confirmado, ");
 		sql.append("u.numero_telefono_movil_confirmado ");
-		sql.append("FROM usuario AS u ");
-		sql.append("INNER JOIN tipo_identificacion AS ti ON u.tipo_identificacion_id = ti.id ");
-		sql.append("INNER JOIN ciudad AS c ON u.ciudad_id = c.id ");
-		sql.append("INNER JOIN departamento AS d ON c.departamento_id = d.id ");
-		sql.append("INNER JOIN pais AS p ON d.pais_id = p.id ");
+		sql.append("FROM apinosedb.usuario AS u ");
+		sql.append("INNER JOIN apinosedb.tipo_identificacion AS ti ON u.tipo_identificacion_id = ti.id ");
+		sql.append("INNER JOIN apinosedb.ciudad AS c ON u.ciudad_id = c.id ");
+		sql.append("INNER JOIN apinosedb.departamento AS d ON c.departamento_id = d.id ");
+		sql.append("INNER JOIN apinosedb.pais AS p ON d.pais_id = p.id ");
 
 		createWhereClauseFindByFilter(sql, parameterList, filterEntity);
 		return sql.toString();
@@ -258,4 +258,5 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 		}
 		return listUser;
 	}
+
 }

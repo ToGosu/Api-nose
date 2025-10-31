@@ -32,6 +32,10 @@ public final class PostgresqlDAOFactory extends DAOFactory {
 		try {
 			Class.forName("org.postgresql.Driver");
 			this.connection = DriverManager.getConnection(url, user, password);
+			try (var statement = this.connection.createStatement()) {
+		            statement.execute("SET search_path TO apinosedb;");
+		     }
+			
 		} catch (SQLException exception) {
 			var userMassage = MessagesEnum.USER_ERROR_SQL_CANNOT_OPEN_CONNECTION.getContent();
 			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_CANNOT_OPEN_CONNECTION.getContent();

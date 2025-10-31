@@ -51,9 +51,9 @@ public final class CityPostgresqlDAO extends SqlConnection implements CityDAO {
 		sql.append("SELECT c.id AS idCiudad, c.nombre AS nombreCiudad, ");
 		sql.append("d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
 		sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-		sql.append("FROM Ciudad c ");
-		sql.append("INNER JOIN Departamento d ON c.departamento = d.id ");
-		sql.append("INNER JOIN Pais p ON d.pais = p.id ");
+		sql.append("FROM apinosedb.Ciudad c ");
+		sql.append("INNER JOIN apinosedb.Departamento d ON c.departamento = d.id ");
+		sql.append("INNER JOIN apinosedb.Pais p ON d.pais = p.id ");
 
 		try (var preparedStatement = getConnection().prepareStatement(sql.toString());
 			 var resultSet = preparedStatement.executeQuery()) {
@@ -88,9 +88,9 @@ public final class CityPostgresqlDAO extends SqlConnection implements CityDAO {
 		sql.append("SELECT c.id AS idCiudad, c.nombre AS nombreCiudad, ");
 		sql.append("d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
 		sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-		sql.append("FROM Ciudad c ");
-		sql.append("INNER JOIN Departamento d ON c.departamento = d.id ");
-		sql.append("INNER JOIN Pais p ON d.pais = p.id ");
+		sql.append("FROM apinosedb.Ciudad c ");
+		sql.append("INNER JOIN apinosedb.Departamento d ON c.departamento = d.id ");
+		sql.append("INNER JOIN apinosedb.Pais p ON d.pais = p.id ");
 		sql.append("WHERE 1=1 ");
 
 		final UUID defaultUuid = UUIDHelper.getUUIDHelper().getDefault();
@@ -144,9 +144,9 @@ public final class CityPostgresqlDAO extends SqlConnection implements CityDAO {
 		sql.append("SELECT c.id AS idCiudad, c.nombre AS nombreCiudad, ");
 		sql.append("d.id AS idDepartamento, d.nombre AS nombreDepartamento, ");
 		sql.append("p.id AS idPais, p.nombre AS nombrePais ");
-		sql.append("FROM Ciudad c ");
-		sql.append("INNER JOIN Departamento d ON c.departamento = d.id ");
-		sql.append("INNER JOIN Pais p ON d.pais = p.id ");
+		sql.append("FROM apinosedb.Ciudad c ");
+		sql.append("INNER JOIN apinosedb.Departamento d ON c.departamento = d.id ");
+		sql.append("INNER JOIN apinosedb.Pais p ON d.pais = p.id ");
 		sql.append("WHERE c.id = ? ");
 
 		try (var preparedStatement = getConnection().prepareStatement(sql.toString())) {

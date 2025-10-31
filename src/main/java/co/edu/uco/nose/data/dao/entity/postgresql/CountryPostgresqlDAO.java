@@ -64,7 +64,7 @@ public final class CountryPostgresqlDAO extends SqlConnection implements Country
 
 	private String createSentenceFindByFilter (final CountryEntity filterEntity, final List<Object> parameterList) {
 
-		final var sql = new StringBuilder(" SELECT c.id, c.nombre FROM Pais c ");
+		final var sql = new StringBuilder(" SELECT c.id, c.nombre FROM apinosedb.Pais c ");
 
 		createWhereClauseFindByFilter(sql, parameterList, filterEntity);
 

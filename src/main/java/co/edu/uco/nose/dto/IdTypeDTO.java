@@ -2,9 +2,6 @@ package co.edu.uco.nose.dto;
 
 import co.edu.uco.nose.crosscuting.helper.TextHelper;
 import co.edu.uco.nose.crosscuting.helper.UUIDHelper;
-import co.edu.uco.nose.data.dao.RetrieveDAO;
-
-import java.util.List;
 import java.util.UUID;
 
 public class IdTypeDTO extends DTO {
