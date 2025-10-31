@@ -34,7 +34,6 @@ public final class IdTypeFacadeImpl implements IdTypeFacade {
 
         } catch (final Exception exception) {
             daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumIdTypeFacade.FIND_ALL_IDTYPES_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumIdTypeFacade.FIND_ALL_IDTYPES_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();
@@ -67,7 +66,6 @@ public final class IdTypeFacadeImpl implements IdTypeFacade {
 
         } catch (final Exception exception) {
             daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumIdTypeFacade.FIND_IDTYPES_BY_FILTER_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumIdTypeFacade.FIND_IDTYPES_BY_FILTER_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();
@@ -98,7 +96,6 @@ public final class IdTypeFacadeImpl implements IdTypeFacade {
 
         } catch (final Exception exception) {
             daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumIdTypeFacade.FIND_SPECIFIC_IDTYPE_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumIdTypeFacade.FIND_SPECIFIC_IDTYPE_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();

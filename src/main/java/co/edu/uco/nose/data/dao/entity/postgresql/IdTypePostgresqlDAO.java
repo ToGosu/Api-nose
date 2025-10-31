@@ -15,120 +15,117 @@ import co.edu.uco.nose.entity.IdTypeEntity;
 
 public final class IdTypePostgresqlDAO extends SqlConnection implements IdTypeDAO {
 
-	public IdTypePostgresqlDAO(final Connection connection) {
-		super(connection);
-	}
+    public IdTypePostgresqlDAO(final Connection connection) {
+        super(connection);
+    }
 
-	private void mapResultSetToIdType(final java.sql.ResultSet resultSet, final IdTypeEntity entity) {
-		try {
-			entity.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
-			entity.setName(resultSet.getString("nombre"));
+    private void mapResultSetToIdType(final java.sql.ResultSet resultSet, final IdTypeEntity entity) {
+        try {
+            entity.setId(UUIDHelper.getUUIDHelper().getFromString(resultSet.getString("id")));
+            entity.setName(resultSet.getString("nombre"));
+        } catch (final SQLException exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_MAPPING_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_MAPPING_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        }
+    }
 
-		} catch (final SQLException exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_MAPPING_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_MAPPING_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-	}
+    @Override
+    public List<IdTypeEntity> findAll() {
 
-	@Override
-	public List<IdTypeEntity> findAll() {
+        SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
 
-		SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
+        final List<IdTypeEntity> idTypes = new ArrayList<>();
+        final String sql = "SELECT id, nombre FROM apinosedb.tipo_identificacion";
 
-		final List<IdTypeEntity> idTypes = new ArrayList<>();
-		final String sql = "SELECT id, nombre FROM apinosedb.tipo_identificacion";
+        try (var preparedStatement = getConnection().prepareStatement(sql);
+             var resultSet = preparedStatement.executeQuery()) {
 
-		try (var preparedStatement = getConnection().prepareStatement(sql);
-			 var resultSet = preparedStatement.executeQuery()) {
+            while (resultSet.next()) {
+                var idType = new IdTypeEntity();
+                mapResultSetToIdType(resultSet, idType);
+                idTypes.add(idType);
+            }
 
-			while (resultSet.next()) {
-				var idType = new IdTypeEntity();
-				mapResultSetToIdType(resultSet, idType);
-				idTypes.add(idType);
-			}
+        } catch (final SQLException exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_ALL_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_ALL_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        } catch (final Exception exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_UNEXPECTED_ERROR_FIND_ALL_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_UNEXPECTED_ERROR_FIND_ALL_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        }
+        return idTypes;
+    }
 
-		} catch (final SQLException exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_ALL_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_ALL_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
+    @Override
+    public List<IdTypeEntity> findByFilter(final IdTypeEntity filterEntity) {
 
-		} catch (final Exception exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_UNEXPECTED_ERROR_FIND_ALL_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_UNEXPECTED_ERROR_FIND_ALL_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-		return idTypes;
-	}
+        SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
 
-	@Override
-	public List<IdTypeEntity> findByFilter(final IdTypeEntity filterEntity) {
+        final List<IdTypeEntity> idTypes = new ArrayList<>();
+        final var sql = new StringBuilder("SELECT id, nombre FROM apinosedb.tipo_identificacion WHERE 1=1 ");
+        final var parameters = new ArrayList<Object>();
 
-		SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
+        if (filterEntity.getId() != null && !UUIDHelper.getUUIDHelper().getDefault().equals(filterEntity.getId())) {
+            sql.append("AND id = ? ");
+            parameters.add(filterEntity.getId().toString()); // ✅ convertir UUID a String
+        }
+        if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
+            sql.append("AND nombre ILIKE ? "); // ✅ ILIKE para insensibilidad a mayúsculas
+            parameters.add("%" + filterEntity.getName().trim() + "%");
+        }
 
-		final List<IdTypeEntity> idTypes = new ArrayList<>();
-		final var sql = new StringBuilder("SELECT id, nombre FROM apinosedb.tipo_identificacion WHERE 1=1 ");
-		final var parameters = new ArrayList<Object>();
+        try (var preparedStatement = getConnection().prepareStatement(sql.toString())) {
 
-		if (filterEntity.getId() != null && !UUIDHelper.getUUIDHelper().getDefault().equals(filterEntity.getId())) {
-			sql.append("AND id = ? ");
-			parameters.add(filterEntity.getId());
-		}
-		if (filterEntity.getName() != null && !filterEntity.getName().trim().isEmpty()) {
-			sql.append("AND nombre LIKE ? ");
-			parameters.add("%" + filterEntity.getName().trim() + "%");
-		}
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
 
-		try (var preparedStatement = getConnection().prepareStatement(sql.toString())) {
+            try (var resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    var idType = new IdTypeEntity();
+                    mapResultSetToIdType(resultSet, idType);
+                    idTypes.add(idType);
+                }
+            }
+        } catch (final SQLException exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_BY_FILTER_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_BY_FILTER_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        } catch (final Exception exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_FILTER_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_FILTER_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        }
+        return idTypes;
+    }
 
-			for (int i = 0; i < parameters.size(); i++) {
-				preparedStatement.setObject(i + 1, parameters.get(i));
-			}
-			try (var resultSet = preparedStatement.executeQuery()) {
-				while (resultSet.next()) {
-					var idType = new IdTypeEntity();
-					mapResultSetToIdType(resultSet, idType);
-					idTypes.add(idType);
-				}
-			}
-		} catch (final SQLException exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_BY_FILTER_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_BY_FILTER_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		} catch (final NoseException exception) {
-			throw exception;
-		} catch (final Exception exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_FILTER_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_FILTER_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-		return idTypes;
-	}
+    @Override
+    public IdTypeEntity findById(final UUID id) {
+        SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
+        IdTypeEntity idType = null;
+        final String sql = "SELECT id, nombre FROM apinosedb.tipo_identificacion WHERE id = ?";
 
-	@Override
-	public IdTypeEntity findById(final UUID id) {
-		SqlConnectionHelper.ensureConnectionIsNotNull(getConnection());
-		IdTypeEntity idType = null;
-		final String sql = "SELECT id, nombre FROM apinosedb.tipo_identificacion WHERE id = ?";
+        try (var preparedStatement = getConnection().prepareStatement(sql)) {
+            preparedStatement.setString(1, id.toString()); // ✅ convertir UUID a String
 
-		try (var preparedStatement = getConnection().prepareStatement(sql)) {
-			preparedStatement.setObject(1, id);
-			try (var resultSet = preparedStatement.executeQuery()) {
-				if (resultSet.next()) {
-					idType = new IdTypeEntity();
-					mapResultSetToIdType(resultSet, idType);
-				}
-			}
-		} catch (final SQLException exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_BY_ID_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_BY_ID_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-
-		} catch (final Exception exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_ID_IDTYPE.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_ID_IDTYPE.getContent();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
-		return idType;
-	}
+            try (var resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    idType = new IdTypeEntity();
+                    mapResultSetToIdType(resultSet, idType);
+                }
+            }
+        } catch (final SQLException exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_BY_ID_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_BY_ID_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        } catch (final Exception exception) {
+            var userMessage = MessagesEnum.USER_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_ID_IDTYPE.getContent();
+            var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_UNEXPECTED_ERROR_FIND_BY_ID_IDTYPE.getContent() + exception.getMessage();
+            throw NoseException.create(exception, userMessage, technicalMessage);
+        }
+        return idType;
+    }
 }

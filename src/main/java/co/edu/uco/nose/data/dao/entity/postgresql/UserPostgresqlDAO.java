@@ -82,18 +82,18 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 
 		try (var preparedStatement = this.getConnection().prepareStatement(sql.toString())) {
 
-			preparedStatement.setObject(1, entity.getIdType().getId());
+			preparedStatement.setString(1, entity.getIdType().getId().toString());
 			preparedStatement.setString(2, entity.getIdNumber());
 			preparedStatement.setString(3, entity.getFirstName());
 			preparedStatement.setString(4, entity.getSecondName());
 			preparedStatement.setString(5, entity.getFirstSurname());
 			preparedStatement.setString(6, entity.getSecondSurname());
-			preparedStatement.setObject(7, entity.getHomeCity().getId());
+			preparedStatement.setString(7, entity.getHomeCity().getId().toString());
 			preparedStatement.setString(8, entity.getEmail());
 			preparedStatement.setString(9, entity.getMobileNumber());
 			preparedStatement.setBoolean(10, entity.isEmailConfirmed());
 			preparedStatement.setBoolean(11, entity.isMobileNumberConfirmed());
-			preparedStatement.setObject(12, entity.getId());
+			preparedStatement.setString(12, entity.getId().toString()); // 👈 clave: convertir a string
 
 			preparedStatement.executeUpdate();
 
@@ -104,21 +104,23 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 		}
 	}
 
+
 	@Override
 	public void delete(final UUID id) {
-		SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
+	    SqlConnectionHelper.ensureTransactionIsStarted(getConnection());
 
-		final var sql = "DELETE FROM apinosedb.usuario WHERE id = ?";
+	    final var sql = "DELETE FROM apinosedb.usuario WHERE id = ?";
 
-		try (var preparedStatement = this.getConnection().prepareStatement(sql)) {
-			preparedStatement.setObject(1, id);
-			preparedStatement.executeUpdate();
-		} catch (final SQLException exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_DELETE_USER.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_DELETE_USER.getContent() + exception.getMessage();
-			throw NoseException.create(exception, userMessage, technicalMessage);
-		}
+	    try (var preparedStatement = this.getConnection().prepareStatement(sql)) {
+	        preparedStatement.setString(1, id.toString()); // ✅ convertir UUID a String
+	        preparedStatement.executeUpdate();
+	    } catch (final SQLException exception) {
+	        var userMessage = MessagesEnum.USER_ERROR_SQL_DELETE_USER.getContent();
+	        var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_DELETE_USER.getContent() + exception.getMessage();
+	        throw NoseException.create(exception, userMessage, technicalMessage);
+	    }
 	}
+
 
 	@Override
 	public List<UserEntity> findByFilter(UserEntity filterEntity) {
@@ -126,19 +128,26 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 
 		var parameterList = new ArrayList<Object>();
 		var sql = createSentenceFindByFilter(filterEntity, parameterList);
-
+		
 		try (var preparedStatement = this.getConnection().prepareStatement(sql)) {
 
-			for (int i = 0; i < parameterList.size(); i++) {
-				preparedStatement.setObject(i + 1, parameterList.get(i));
-			}
+		    for (int i = 0; i < parameterList.size(); i++) {
+		        Object value = parameterList.get(i);
 
-			return executeSentenceFindByFilter(preparedStatement);
+		        if (value instanceof java.util.UUID uuidValue) {
+		            preparedStatement.setString(i + 1, uuidValue.toString());
+		        } else {
+		            preparedStatement.setObject(i + 1, value);
+		        }
+		    }
+
+		    return executeSentenceFindByFilter(preparedStatement);
 		} catch (final SQLException exception) {
-			var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_BY_FILTER_USER.getContent();
-			var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_BY_FILTER_USER.getContent() + exception.getMessage();
-			throw NoseException.create(exception, userMessage, technicalMessage);
+		    var userMessage = MessagesEnum.USER_ERROR_SQL_EXECUTING_FIND_BY_FILTER_USER.getContent();
+		    var technicalMessage = MessagesEnum.TECHNICAL_ERROR_SQL_EXECUTING_FIND_BY_FILTER_USER.getContent() + exception.getMessage();
+		    throw NoseException.create(exception, userMessage, technicalMessage);
 		}
+
 	}
 
 	@Override
@@ -152,35 +161,37 @@ public class UserPostgresqlDAO extends SqlConnection implements UserDAO {
 	}
 
 	private String createSentenceFindByFilter(final UserEntity filterEntity, final List<Object> parameterList) {
-		final var sql = new StringBuilder();
+	    final var sql = new StringBuilder();
 
-		sql.append("SELECT u.id, ");
-		sql.append("ti.id AS id_tipo_identificacion, ");
-		sql.append("ti.nombre AS nombre_tipo_identificacion, ");
-		sql.append("u.numero_identificacion, ");
-		sql.append("u.primer_nombre, ");
-		sql.append("u.segundo_nombre, ");
-		sql.append("u.primer_apellido, ");
-		sql.append("u.segundo_apellido, ");
-		sql.append("c.id AS id_ciudad_residencia, ");
-		sql.append("c.nombre AS nombre_ciudad_residencia, ");
-		sql.append("d.id AS id_departamento_ciudad_residencia, ");
-		sql.append("d.nombre AS nombre_departamento_ciudad_residencia, ");
-		sql.append("p.id AS id_pais_departamento_ciudad_residencia, ");
-		sql.append("p.nombre AS nombre_pais_departamento_ciudad_residencia, ");
-		sql.append("u.correo_electronico, ");
-		sql.append("u.numero_telefono_movil, ");
-		sql.append("u.correo_electronico_confirmado, ");
-		sql.append("u.numero_telefono_movil_confirmado ");
-		sql.append("FROM apinosedb.usuario AS u ");
-		sql.append("INNER JOIN apinosedb.tipo_identificacion AS ti ON u.tipo_identificacion_id = ti.id ");
-		sql.append("INNER JOIN apinosedb.ciudad AS c ON u.ciudad_id = c.id ");
-		sql.append("INNER JOIN apinosedb.departamento AS d ON c.departamento_id = d.id ");
-		sql.append("INNER JOIN apinosedb.pais AS p ON d.pais_id = p.id ");
+	    sql.append("SELECT u.id, ");
+	    sql.append("ti.id AS id_tipo_identificacion, ");
+	    sql.append("ti.nombre AS nombre_tipo_identificacion, ");
+	    sql.append("u.numero_identificacion, ");
+	    sql.append("u.primer_nombre, ");
+	    sql.append("u.segundo_nombre, ");
+	    sql.append("u.primer_apellido, ");
+	    sql.append("u.segundo_apellido, ");
+	    sql.append("c.id AS id_ciudad_residencia, ");
+	    sql.append("c.nombre AS nombre_ciudad_residencia, ");
+	    sql.append("d.id AS id_departamento_ciudad_residencia, ");
+	    sql.append("d.nombre AS nombre_departamento_ciudad_residencia, ");
+	    sql.append("p.id AS id_pais_departamento_ciudad_residencia, ");
+	    sql.append("p.nombre AS nombre_pais_departamento_ciudad_residencia, ");
+	    sql.append("u.correo_electronico, ");
+	    sql.append("u.numero_telefono_movil, ");
+	    sql.append("u.correo_electronico_confirmado, ");
+	    sql.append("u.numero_telefono_movil_confirmado ");
+	    sql.append("FROM apinosedb.usuario AS u ");
+	    sql.append("INNER JOIN apinosedb.tipo_identificacion AS ti ON u.tipo_identificacion_id = ti.id ");
+	    sql.append("INNER JOIN apinosedb.ciudad AS c ON u.ciudad_id = c.id ");
+	    sql.append("INNER JOIN apinosedb.departamento AS d ON c.departamento_id = d.id ");
+	    sql.append("INNER JOIN apinosedb.pais AS p ON d.pais_id = p.id ");
 
-		createWhereClauseFindByFilter(sql, parameterList, filterEntity);
-		return sql.toString();
+	    createWhereClauseFindByFilter(sql, parameterList, filterEntity);
+	    return sql.toString();
 	}
+
+
 
 	private void createWhereClauseFindByFilter(final StringBuilder sql, final List<Object> parameterList, final UserEntity filterEntity) {
 		var filter = ObjectHelper.getDefault(filterEntity, new UserEntity());

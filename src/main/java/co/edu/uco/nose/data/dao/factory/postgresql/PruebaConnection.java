@@ -48,7 +48,7 @@ public class PruebaConnection {
             user.setIdType(idType);
             user.setIdNumber("43795619");
             user.setFirstName("Maria");
-            user.setSecondName(null);
+            user.setSecondName("Yanet");
             user.setFirstSurname("Castaño");
             user.setSecondSurname("Gomez");
             user.setHomeCity(city);

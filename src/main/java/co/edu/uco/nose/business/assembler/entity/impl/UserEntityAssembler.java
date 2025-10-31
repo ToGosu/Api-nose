@@ -74,7 +74,8 @@ public final class UserEntityAssembler implements EntityAssembler<UserEntity, Us
     }
 
     @Override
-    public List<UserEntity> toDTO(List<UserDomain> domainList) {
+    public List<UserEntity> toEntity(List<UserDomain> domainList) {
+
         return List.of();
     }
 }

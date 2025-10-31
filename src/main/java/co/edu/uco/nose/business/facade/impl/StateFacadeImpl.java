@@ -34,7 +34,6 @@ public final class StateFacadeImpl implements StateFacade {
         }
         catch (final Exception exception) {
             daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumStateFacade.FIND_ALL_STATES_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumStateFacade.FIND_ALL_STATES_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();
@@ -67,7 +66,6 @@ public final class StateFacadeImpl implements StateFacade {
         }
         catch (final Exception exception) {
             daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumStateFacade.FIND_STATES_BY_FILTER_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumStateFacade.FIND_STATES_BY_FILTER_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();
@@ -98,7 +96,6 @@ public final class StateFacadeImpl implements StateFacade {
         }
         catch (final Exception exception) {
             daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumStateFacade.FIND_SPECIFIC_STATE_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumStateFacade.FIND_SPECIFIC_STATE_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();

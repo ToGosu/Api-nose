@@ -33,8 +33,6 @@ public final class CountryFacadeImpl implements CountryFacade {
             throw exception;
 
         } catch (final Exception exception) {
-            daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumCountryFacade.FIND_ALL_COUNTRIES_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumCountryFacade.FIND_ALL_COUNTRIES_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();
@@ -66,8 +64,6 @@ public final class CountryFacadeImpl implements CountryFacade {
             throw exception;
 
         } catch (final Exception exception) {
-            daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumCountryFacade.FIND_COUNTRIES_BY_FILTER_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumCountryFacade.FIND_COUNTRIES_BY_FILTER_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();
@@ -97,8 +93,6 @@ public final class CountryFacadeImpl implements CountryFacade {
             throw exception;
 
         } catch (final Exception exception) {
-            daoFactory.rollbackTransaction();
-
             var userMessage = MessagesEnumCountryFacade.FIND_SPECIFIC_COUNTRY_UNEXPECTED_ERROR.getTitle();
             var technicalMessage = MessagesEnumCountryFacade.FIND_SPECIFIC_COUNTRY_UNEXPECTED_ERROR.getContent()
                     + exception.getMessage();

@@ -1,13 +1,14 @@
 package co.edu.uco.nose.business.assembler.entity.impl;
 
-import java.util.List;
-
 import co.edu.uco.nose.business.assembler.entity.EntityAssembler;
 import co.edu.uco.nose.business.domain.IdTypeDomain;
 import co.edu.uco.nose.crosscuting.helper.ObjectHelper;
 import co.edu.uco.nose.entity.IdTypeEntity;
 
-public class IdTypeEntityAssembler implements EntityAssembler<IdTypeEntity, IdTypeDomain> {
+import java.util.ArrayList;
+import java.util.List;
+
+public final class IdTypeEntityAssembler implements EntityAssembler<IdTypeEntity, IdTypeDomain> {
 
     private static final EntityAssembler<IdTypeEntity, IdTypeDomain> instance = new IdTypeEntityAssembler();
 
@@ -32,7 +33,14 @@ public class IdTypeEntityAssembler implements EntityAssembler<IdTypeEntity, IdTy
     }
 
     @Override
-    public List<IdTypeEntity> toDTO(List<IdTypeDomain> domainList) {
-        return List.of();
+    public List<IdTypeEntity> toEntity(List<IdTypeDomain> domainList) {
+        var domainListTmp = ObjectHelper.getDefault(domainList, new ArrayList<IdTypeDomain>());
+        var entityList = new ArrayList<IdTypeEntity>();
+
+        for (var domain : domainListTmp) {
+            entityList.add(toEntity(domain));
+        }
+
+        return entityList;
+        }
     }
-}

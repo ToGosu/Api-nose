@@ -27,7 +27,7 @@ public class TestUserRegistration {
             user.setIdNumber("1040870381");
             user.setFirstName("Santiago");
             user.setFirstSurname("Torres");
-            user.setSecondName(null);
+            user.setSecondName("");
             user.setSecondSurname("Castaño");
             user.setEmail("santiago.torres0381@uco.net.co");
             user.setMobileNumber("3195809523");
