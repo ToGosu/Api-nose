@@ -1,4 +1,3 @@
-// java
         package co.edu.uco.nose.business.facade.impl;
 
         import co.edu.uco.nose.business.assembler.dto.impl.UserDTOAssembler;
